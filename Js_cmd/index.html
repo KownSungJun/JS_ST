@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="ko">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>웹 CMD - Vanilla JS</title>
+    <link rel="stylesheet" href="./style.css">
+</head>
+
+<body>
+    <div class="wrap">
+        <header>
+            <div class="dot r"></div>
+            <div class="dot y"></div>
+            <div class="dot g"></div>
+            <div class="title">웹 CMD — Vanilla JS</div>
+        </header>
+
+        <main class="terminal" id="terminal" aria-live="polite"></main>
+
+        <div
+            style="padding:12px 18px;background:linear-gradient(180deg, rgba(255,255,255,0.01), transparent);display:flex;align-items:center;gap:12px;">
+            <div class="prompt muted" id="prompt-label">guest@web:~/</div>
+            <div style="flex:1; display:flex;">
+                <input id="cmd" class="cmd-input" autocomplete="off" autocapitalize="off" spellcheck="false" />
+            </div>
+            <div class="muted" style="font-size:13px">Enter →</div>
+        </div>
+        <div style="padding:10px 18px;background:#051019;color:var(--muted);font-size:12px">
+            <span class="hint">팁: ↑ / ↓로 명령 기록, Ctrl+L로 화면 지우기.</span>
+        </div>
+    </div>
+
+    <script src="./action.js"></script>
