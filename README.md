@@ -63,5 +63,26 @@
 | 태그 / 가상 요소          | `div`, `p`, `::after`                 | 1         |
 | `*`, 상속된 스타일        | `* {}`, `color: inherit`              | 0         |
 
+## 함수 호이스팅
+호이스팅(Hoisting)이란 함수 내의 변수 및 함수 선언을 각 유효 범위의 최상단으로 끌어 올려주는 JS의 독특한 특징이다
+
+실제로 코드가 끌어올려지는 것은 아니고, JS parser가 내부적으로 끌어올려 처리한다
+
+컴파일 단계에서 코드 실행 전 함수와 변수 선언을 스캔하고, 모든 함수와 변수 선언은 렉시컬 환경이라고 불리는 JS 데이터 구조 내의 메모리에 추가되어 전역으로 사용할 수 있게 된다
+
+```js
+console.log(a); //undefined
+var a = 'A';
+
+/* 호이스팅 된 코드 */
+var a;
+console.log(a);
+a = 'A';
+```
+
+모든 선언(var, let, const, function, class)은 js에서 호이스팅되며, var 선언은 undefined로 초기화되지만 let 및 const 선언은 초기화되지 않은 <b>Temporal Deal Zone</b> 상태로 유지된다
+
 ## JS IIFE 즉시실행 함수 표현식
+
+### gka
 
