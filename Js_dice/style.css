@@ -1,0 +1,99 @@
+:root {
+  --main-color: #2563eb;   /* 메인 파랑 */
+  --accent-color: #22c55e; /* 보조 연두 */
+  --bg-color: #f8fafc;     /* 밝은 배경 */
+  --text-color: #334155;   /* 회색 텍스트 */
+}
+
+body {
+  font-family: 'Pretendard', sans-serif;
+  background: linear-gradient(135deg, #2563eb, #1e40af);
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 0;
+  color: var(--text-color);
+}
+
+.container {
+  background: var(--bg-color);
+  padding: 40px 50px;
+  border-radius: 20px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  text-align: center;
+  width: 320px;
+}
+
+h1 {
+  color: var(--main-color);
+  font-size: 1.8rem;
+  margin-bottom: 30px;
+}
+
+.dice-wrapper {
+  perspective: 600px;
+  height: 120px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.dice {
+  width: 100px;
+  height: 100px;
+  position: relative;
+  transform-style: preserve-3d;
+  transform: rotateX(0deg) rotateY(0deg);
+  transition: transform 1s ease-out;
+}
+
+.face {
+  position: absolute;
+  width: 100px;
+  height: 100px;
+  background: white;
+  border-radius: 15px;
+  font-size: 40px;
+  font-weight: bold;
+  color: var(--main-color);
+  border: 3px solid #e2e8f0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.front  { transform: translateZ(50px); }
+.back   { transform: rotateY(180deg) translateZ(50px); }
+.right  { transform: rotateY(90deg) translateZ(50px); }
+.left   { transform: rotateY(-90deg) translateZ(50px); }
+.top    { transform: rotateX(90deg) translateZ(50px); }
+.bottom { transform: rotateX(-90deg) translateZ(50px); }
+
+button {
+  margin-top: 30px;
+  background: var(--main-color);
+  color: white;
+  border: none;
+  padding: 12px 25px;
+  border-radius: 10px;
+  font-size: 18px;
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 0 5px 10px rgba(37, 99, 235, 0.3);
+  transition: 0.2s ease;
+}
+
+button:hover {
+  background: var(--accent-color);
+  box-shadow: 0 5px 15px rgba(34, 197, 94, 0.4);
+  transform: scale(1.05);
+}
+
+#result {
+  margin-top: 20px;
+  font-size: 1.3rem;
+  font-weight: bold;
+  color: var(--text-color);
+}

@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>가위바위보 게임</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      text-align: center;
+      margin-top: 50px;
+    }
+    select, button {
+      font-size: 1rem;
+      margin: 10px;
+      padding: 5px 10px;
+    }
+    #result {
+      margin-top: 20px;
+      font-weight: bold;
+      font-size: 1.2rem;
+    }
+  </style>
+</head>
+<body>
+  <h1>가위바위보 게임 ✊✋✌️</h1>
+
+  <div>
+    <label>User1 선택: </label>
+    <select id="user1">
+      <option value="1">가위</option>
+      <option value="2">바위</option>
+      <option value="3">보</option>
+    </select>
+  </div>
+
+  <div>
+    <label>User2 선택: </label>
+    <select id="user2">
+      <option value="1">가위</option>
+      <option value="2">바위</option>
+      <option value="3">보</option>
+    </select>
+  </div>
+
+  <button id="play">결과 보기</button>
+
+  <div id="result"></div>
+
+  <script>
+    document.getElementById('play').addEventListener('click', () => {
+      const user1 = document.getElementById('user1').value;
+      const user2 = document.getElementById('user2').value;
+      const result = document.getElementById('result');
+
+      const choices = { 1: '가위', 2: '바위', 3: '보' };
+      let message = `👤 user1: ${choices[user1]} vs 👤 user2: ${choices[user2]}<br>`;
+
+      if (user1 === user2) {
+        message += '🤝 무승부!';
+      } else if (
+        (user1 === '1' && user2 === '3') || 
+        (user1 === '2' && user2 === '1') ||
+        (user1 === '3' && user2 === '2')
+      ) {
+        message += '🎉 user1 승리!';
+      } else {
+        message += '🎉 user2 승리!';
+      }
+
+      result.innerHTML = message;
+    });
+  </script>
+</body>
+</html>
