@@ -20,3 +20,13 @@ for(i=0;i<52;i++) {
     
   }
 }
+//Bang 카드
+class Job_card {
+  job;
+  text;
+}
+
+
+class Character_card {
+  
+}
