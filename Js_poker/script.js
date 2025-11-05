@@ -9,3 +9,14 @@ document.querySelector('.btn.fold').addEventListener('click', () => {
 document.querySelector('.btn.check').addEventListener('click', () => {
   alert('🃏 체크했습니다.');
 });
+class Card {
+  sign;
+  number;
+}
+
+for(i=0;i<52;i++) {
+  card = new Card();
+  if(i>12) {
+    
+  }
+}
