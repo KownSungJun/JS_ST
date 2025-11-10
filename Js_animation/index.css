@@ -56,3 +56,41 @@ body {
   cursor: grabbing;
   box-shadow: 0 0 15px gold;
 }
+
+/* * {
+    position: relative;
+    top: 50px;
+    bottom: 50px;
+    right: 50px;
+    bottom: 50px;
+}
+
+* {
+    position: absolute;
+    top: 50px;
+    bottom: 50px;
+}
+
+* {
+    position: static;
+}
+
+* {
+    position: fixed;
+}
+
+* {
+    position: sticky;
+}
+
+* {
+    overflow: visible;
+    overflow: auto;
+    overflow: hidden;
+    overflow: scroll;
+    overflow-x: auto;
+    overflow-y: auto;
+    white-space: nowarp;
+    cursor: grab;
+    cursor: grabbing;
+} */
