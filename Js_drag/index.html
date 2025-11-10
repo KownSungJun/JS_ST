@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>드래그 이동 예제</title>
+<style>
+  body {
+    height: 100vh;
+    margin: 0;
+    background: #f5f5f5;
+    overflow: hidden;
+  }
+
+  .card {
+    width: 100px;
+    height: 140px;
+    background: #ffcc00;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    position: absolute;
+    left: 100px;
+    top: 100px;
+    cursor: grab;
+    transition: box-shadow 0.2s ease;
+  }
+
+  .card:active {
+    cursor: grabbing;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+  }
+</style>
+</head>
+<body>
+  <div class="card" id="card"></div>
+
+  <script>
+    const card = document.getElementById("card");
+
+    let offsetX = 0;
+    let offsetY = 0;
+    let isDragging = false;
+
+    card.addEventListener("mousedown", (e) => {
+      isDragging = true;
+      offsetX = e.clientX - card.offsetLeft;
+      offsetY = e.clientY - card.offsetTop;
+      card.style.transition = "none"; // 이동 중엔 부드럽게 안하도록
+    });
+
+    document.addEventListener("mousemove", (e) => {
+      if (isDragging) {
+        card.style.left = `${e.clientX - offsetX}px`;
+        card.style.top = `${e.clientY - offsetY}px`;
+      }
+    });
+
+    document.addEventListener("mouseup", () => {
+      isDragging = false;
+      card.style.transition = "box-shadow 0.2s ease"; // 마우스 놓으면 원래대로
+    });
+  </script>
+</body>
+</html>
