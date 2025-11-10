@@ -83,3 +83,16 @@ https://developer.mozilla.org/ko/docs/Web/CSS/Reference/Properties/cursor
 ## @keyframes
 - `@Keyframes`는 '애니메이션 프레임'을 정의하는 CSS 규칙이다
 - `from`, `to`키워드로 애니메이션의 시작과 종료 스타일을 정의하거나, `0%`뷰터`100%`사이의 퍼센트 값으로 각 단계의 애니메이션을 정의할 수 있다
+이어서...
+
+# Pseudo Class
+
+# 면접 관련 정리 노트
+## FrontEnd
+https://velog.io/@dnr6054/fe-interview-JavaScript
+https://velog.io/@dnr6054/fe-interview-html-css
+https://velog.io/@dnr6054/fe-interview-TypeScript
+https://velog.io/@dnr6054/fe-interview-React
+https://github.com/Esoolgnah/Frontend-Interview-Questions
+## BackEnd
+https://github.com/ksundong/backend-interview-question
