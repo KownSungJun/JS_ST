@@ -12,17 +12,27 @@
     overflow: hidden;
   }
 
-  .card {
-    width: 100px;
-    height: 140px;
-    background: #ffcc00;
+.card {
+  width: 100px;
+  height: 140px;
+  position: fixed;
+  left: 100px;
+  top: 100px;
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+  cursor: grab;
+  transition: box-shadow 0.2s ease;
+  user-select: none;       /* ← 추가 */
+  -webkit-user-drag: none; /* ← 추가 */
+}
+
+
+  .card img {
+    width: 100%;
+    height: 100%;
     border-radius: 10px;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-    position: absolute;
-    left: 100px;
-    top: 100px;
-    cursor: grab;
-    transition: box-shadow 0.2s ease;
+    object-fit: cover;
+    pointer-events: none; /* 이미지가 드래그 이벤트를 방해하지 않게 함 */
   }
 
   .card:active {
@@ -32,7 +42,9 @@
 </style>
 </head>
 <body>
-  <div class="card" id="card"></div>
+  <div class="card" id="card">
+    <img src="https://bang.dvgiochi.com/content/1/cards/01_sceriffo.png" alt="">
+  </div>
 
   <script>
     const card = document.getElementById("card");
@@ -43,21 +55,30 @@
 
     card.addEventListener("mousedown", (e) => {
       isDragging = true;
+      // 마우스와 카드의 상대 위치 계산
       offsetX = e.clientX - card.offsetLeft;
       offsetY = e.clientY - card.offsetTop;
-      card.style.transition = "none"; // 이동 중엔 부드럽게 안하도록
+      card.style.transition = "none"; // 이동 중 transition 제거
     });
 
     document.addEventListener("mousemove", (e) => {
-      if (isDragging) {
-        card.style.left = `${e.clientX - offsetX}px`;
-        card.style.top = `${e.clientY - offsetY}px`;
-      }
+      if (!isDragging) return;
+      const x = e.clientX - offsetX;
+      const y = e.clientY - offsetY;
+      card.style.left = `${x}px`;
+      card.style.top = `${y}px`;
     });
 
     document.addEventListener("mouseup", () => {
+      if (isDragging) {
+        isDragging = false;
+        card.style.transition = "box-shadow 0.2s ease";
+      }
+    });
+
+    // 마우스가 화면 밖으로 나가도 드래그가 풀리게
+    document.addEventListener("mouseleave", () => {
       isDragging = false;
-      card.style.transition = "box-shadow 0.2s ease"; // 마우스 놓으면 원래대로
     });
   </script>
 </body>
