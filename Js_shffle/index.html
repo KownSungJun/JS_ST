@@ -1,0 +1,286 @@
+<!-- <!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>드래그 가능한 카드 덱</title>
+<style>
+  body {
+    margin: 0;
+    height: 100vh;
+    background: radial-gradient(circle, #35654d, #1a2f23);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+
+  #table {
+    position: relative;
+    width: 600px;
+    height: 400px;
+    background: rgba(0,0,0,0.15);
+    border-radius: 10px;
+    box-shadow: inset 0 0 10px rgba(0,0,0,0.4);
+  }
+
+  .card {
+    width: 80px;
+    height: 120px;
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    border-radius: 10px;
+    background-color: white;
+    background-size: cover;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    cursor: grab;
+    transition: transform 0.3s ease, left 0.3s ease, top 0.3s ease;
+  }
+
+  .card:active {
+    cursor: grabbing;
+  }
+
+  #shuffleBtn {
+    margin-top: 20px;
+    padding: 10px 20px;
+    font-size: 18px;
+    border: none;
+    border-radius: 8px;
+    background: #ff9800;
+    color: white;
+    cursor: pointer;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    transition: background 0.2s;
+  }
+
+  #shuffleBtn:hover {
+    background: #f57c00;
+  }
+</style>
+</head>
+<body>
+  <div id="table"></div>
+  <button id="shuffleBtn">셔플</button>
+
+  <script>
+    const table = document.getElementById('table');
+    const shuffleBtn = document.getElementById('shuffleBtn');
+    const deck = [];
+
+    const CARD_COUNT = 8;
+
+    // 카드 생성
+    for (let i = 0; i < CARD_COUNT; i++) {
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.style.backgroundImage = `url('https://picsum.photos/seed/${i}/80/120')`;
+      table.appendChild(card);
+      deck.push(card);
+
+      // 약간씩 위치 차이를 줘서 덱처럼 보이게
+      card.style.transform = `translate(-50%, -50%) rotate(${Math.random() * 5 - 2.5}deg)`;
+      card.style.zIndex = i;
+    }
+
+    // 드래그 로직
+    let isDragging = false;
+    let offsetX = 0;
+    let offsetY = 0;
+    let currentCard = null;
+
+    table.addEventListener('mousedown', (e) => {
+      if (e.target.classList.contains('card')) {
+        currentCard = e.target;
+        isDragging = true;
+        offsetX = e.clientX - currentCard.offsetLeft;
+        offsetY = e.clientY - currentCard.offsetTop;
+        currentCard.style.transition = 'none';
+        currentCard.style.zIndex = 999;
+      }
+    });
+
+    document.addEventListener('mousemove', (e) => {
+      if (isDragging && currentCard) {
+        currentCard.style.left = `${e.clientX - offsetX}px`;
+        currentCard.style.top = `${e.clientY - offsetY}px`;
+      }
+    });
+
+    document.addEventListener('mouseup', () => {
+      if (isDragging) {
+        isDragging = false;
+        if (currentCard) {
+          currentCard.style.transition = 'transform 0.3s ease';
+          currentCard = null;
+        }
+      }
+    });
+
+    // 셔플 버튼
+    shuffleBtn.addEventListener('click', () => {
+      deck.forEach((card, i) => {
+        // 모든 카드 중앙으로 이동
+        card.style.left = '50%';
+        card.style.top = '50%';
+        card.style.transition = 'all 0.6s ease';
+        card.style.transform = 'translate(-50%, -50%) scale(1.2) rotate(0deg)';
+      });
+
+      // 0.6초 뒤 셔플 애니메이션
+      setTimeout(() => {
+        deck.forEach((card, i) => {
+          const angle = Math.random() * 10 - 5;
+          const offsetX = Math.random() * 4 - 2;
+          const offsetY = Math.random() * 4 - 2;
+          card.style.transform = `translate(-50%, -50%) rotate(${angle}deg) translate(${offsetX}px, ${offsetY}px)`;
+          card.style.transition = 'transform 0.5s ease';
+          card.style.zIndex = i;
+        });
+      }, 600);
+    });
+  </script>
+</body>
+</html> -->
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>카드 셔플 애니메이션</title>
+<style>
+  body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    background: #2b2b2b;
+  }
+
+  #board {
+    position: relative;
+    width: 600px;
+    height: 400px;
+  }
+
+  .card {
+    position: absolute;
+    width: 80px;
+    height: 120px;
+    border-radius: 8px;
+    background: white;
+    border: 2px solid #ccc;
+    transition: transform 0.8s ease, top 0.8s, left 0.8s;
+    cursor: grab;
+  }
+
+  #shuffleBtn {
+    margin-top: 20px;
+    padding: 10px 20px;
+    background: #4a90e2;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+</style>
+</head>
+<body>
+  <div id="board"></div>
+  <button id="shuffleBtn">셔플</button>
+
+  <script>
+    const board = document.getElementById("board");
+    const shuffleBtn = document.getElementById("shuffleBtn");
+
+    let cards = [];
+    const numCards = 8;
+
+    // 카드 생성
+    function createDeck() {
+      for (let i = 0; i < numCards; i++) {
+        const card = document.createElement("div");
+        card.classList.add("card");
+        card.textContent = i + 1;
+        const angle = (i - numCards / 2) * 15;
+        const x = 250 + Math.random() * 100 - 50;
+        const y = 150 + Math.random() * 50 - 25;
+
+        card.style.transform = `rotate(${angle}deg)`;
+        card.style.left = `${x}px`;
+        card.style.top = `${y}px`;
+
+        makeDraggable(card);
+        board.appendChild(card);
+        cards.push(card);
+      }
+    }
+
+    // 카드 드래그 가능하게 만들기
+    function makeDraggable(card) {
+      let offsetX, offsetY;
+
+      card.addEventListener("mousedown", (e) => {
+        offsetX = e.clientX - card.offsetLeft;
+        offsetY = e.clientY - card.offsetTop;
+        card.style.transition = "none";
+        card.style.zIndex = 1000;
+
+        function onMouseMove(e) {
+          card.style.left = e.clientX - offsetX + "px";
+          card.style.top = e.clientY - offsetY + "px";
+        }
+
+        function onMouseUp() {
+          document.removeEventListener("mousemove", onMouseMove);
+          document.removeEventListener("mouseup", onMouseUp);
+          card.style.transition = "transform 0.8s ease, top 0.8s, left 0.8s";
+          card.style.zIndex = "";
+        }
+
+        document.addEventListener("mousemove", onMouseMove);
+        document.addEventListener("mouseup", onMouseUp);
+      });
+    }
+
+    // Fisher-Yates 셔플 알고리즘
+    function shuffleArray(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+    }
+
+    // 셔플 버튼 이벤트
+    shuffleBtn.addEventListener("click", () => {
+      // 카드들을 중앙으로 모이게
+      cards.forEach((card) => {
+        card.style.left = "260px";
+        card.style.top = "140px";
+        card.style.transform = `rotate(${Math.random() * 360}deg)`;
+      });
+
+      // 잠시 기다린 뒤 실제 순서 섞기
+      setTimeout(() => {
+        shuffleArray(cards);
+        board.innerHTML = ""; // 기존 카드 제거
+        cards.forEach((card, i) => {
+          const angle = (i - numCards / 2) * 15;
+          const x = 250 + Math.random() * 100 - 50;
+          const y = 150 + Math.random() * 50 - 25;
+          card.style.left = `${x}px`;
+          card.style.top = `${y}px`;
+          card.style.transform = `rotate(${angle}deg)`;
+          board.appendChild(card);
+        });
+      }, 1000); // 애니메이션 후 순서 반영
+    });
+
+    createDeck();
+  </script>
+</body>
+</html>
