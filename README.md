@@ -86,4 +86,30 @@ a = 'A';
 
 ## event
 
+## 누리나래 expo 프로젝트 기술 스택
+웹 시스템은 고령 사용자의 인지와 정서 상태를 효율적으로 관리하기 위해 Python 기반 Flask 프레임워크로 구축되었다. 음성 인식은 Google Speech Recognition API를 활용하여 사용자가 음성으로 일기를 기록하거나 문진표를 작성할 수 있도록 지원하며, 보호자는 Flask 백엔드와 HTML·CSS·JavaScript 프런트엔드를 통해 로봇과 연동하여 검진 결과, 일정, 사진첩을 관리할 수 있습니다. 라즈베리파이(Raspberry Pi)는 각 센서의 데이터를 통합해 서버로 전송하며, Flask 서버는 이를 처리·저장한 뒤 웹 클라이언트에 시각적으로 표시했습니다. 보호자는 이를 통해 실시간으로 사용자의 상태를 확인하고 필요한 조치를 취할 수 있으며, 로봇은 서버와 연동하여 변경된 정보를 즉시 반영합니다. 프런트엔드는 Socket으로 실시간 통신을 수행하고, Streamlit을 통해 대시보드형 UI를 구성했습니다. Requests 라이브러리는 REST API를 이용해 일기, 문진, 일정 데이터를 백엔드와 주고 받았습니다. 백엔드는 UUID로 데이터 중복을 방지하고, smtplib과 MIMEText를 활용해 이메일 알림을 전송하며, calendar(pycal)로 일정 계산을 처리합니다. 이 구조를 통해 라즈베리파이를 중심으로 로봇, 서버, 웹이 유기적으로 연결되어 실시간 모니터링, 데이터 관리, 알림 기능이 안정적으로 운영됩니다.
+
+OpenAI Whisper : OpenAI에서 개발한 음성 인식(Speech-to-text)모델로, Open AI 공식 개발 문서를 참고하였습니다. Whisper는 사람의 음성을 텍스트로 자동 변환하는 기능을 수행하는 코드입니다. 
+출처 : https://platform.openai.com/docs/guides/speech-to-text
+
+Google MediaPipe : Google Research에서 개발한 실시간 신체&손동작 인식용 프레임워크 모델로, Google 공식문서에서 참고하였습니다. 
+출처 : https://ai.google.dev/edge/mediapipe/solutions/guide?hl=ko
+
+Open CV : Intel과 Open CV가 공동 개발한 오픈소스 컴퓨터 비전 라이브러리 모델로, GitHub에서 참고하였습니다. 
+출처 : https://github.com/opencv/opencv?tab=readme-ov-file
+
+Virtual Mouse : Git Hub 개발자 Yunwoong이 개발한 카메라로 손동작을 인식하여 마우스를 제어하는 모델로, Yunwoong이 공개한 프로젝트를 참고하였습니다. 
+출처 : https://github.com/yunwoong7/virtual_mouse
+
+Intel RealSense Camera SDK : Intel Corporation에서 개발한 RealSense SDK 예제 코드로 깊이(Depth) 정보와 RGB 영상을 처리하여 사람의 위치 및 거리 데이터를 분석할 수 있는 기능을 참고하였습니다.
+출처 : https://dev.realsenseai.com/docs/supported-platforms-and-languages
+
+낙상감지 논문 : 한국컴퓨터정보학회 주은수 외 5명이 개발한 낙상감지 코드로 인체의 좌표변화를 이용해 낙성여부를 판별하는 기능을 참고("낙상사고 감지 시스템 구현," in 한국컴퓨터정보학회 학술발표논문집 , pp.461-462, 2022.)하였습니다.
+
+
+Google Gmail API : Google Developers에서 개발한 Gmail API 예제 코드로, 외부 어플리케이션이 이메일을 자동으로 전송할 수 있도록 지원하는 코드를 참고하였습니다.
+출처 : https://developers.google.com/workspace/gmail/api/guides?hl=ko
+
+MMSE : 중앙 치매센터 자료실에 있는 MMSE-DS 점수 변환기 자료로, 인지 기능 저하가 의심되는지를 판별하는 문제를 참고하였습니다.
+출처 : https://www.nid.or.kr/info/dataroom_view.aspx?BID=21
 
