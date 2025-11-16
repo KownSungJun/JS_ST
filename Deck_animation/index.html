@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>Stack Deck to Hand Animation</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background: #f4f4f4;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 40px;
+  }
+
+  /* 덱 영역 */
+  .deck {
+    width: 120px;
+    height: 160px;
+    position: relative;
+    cursor: pointer;
+  }
+
+  .deck-card {
+    width: 120px;
+    height: 160px;
+    border-radius: 12px;
+    border: 2px solid #222;
+    background: white;
+    position: absolute;
+    top: 0;
+    left: 0;
+    transform: translate(var(--x,0), var(--y,0));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    transition: transform 0.6s ease, top 0.6s ease, left 0.6s ease;
+  }
+
+  /* 카드가 겹쳐 보이게 */
+  .deck-card:nth-child(1) { top: 0px; }
+  .deck-card:nth-child(2) { top: 4px; }
+  .deck-card:nth-child(3) { top: 8px; }
+  .deck-card:nth-child(4) { top: 12px; }
+  .deck-card:nth-child(5) { top: 16px; }
+
+  /* 플레이어 패 */
+  .player-field {
+    margin-top: 50px;
+    width: 90%;
+    min-height: 180px;
+    padding: 20px;
+    border: 3px dashed #777;
+    border-radius: 12px;
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+    justify-content: center;
+    background: white;
+  }
+</style>
+</head>
+<body>
+
+<h2>중앙 덱</h2>
+<div class="deck" id="deck">
+  <div class="deck-card" data-type="가위">✌️</div>
+  <div class="deck-card" data-type="바위">✊</div>
+  <div class="deck-card" data-type="보">🖐️</div>
+  <div class="deck-card" data-type="바위">✊</div>
+  <div class="deck-card" data-type="가위">✌️</div>
+</div>
+
+<h2>내 패</h2>
+<div class="player-field" id="playerField"></div>
+
+<script>
+  const deck = document.getElementById("deck");
+  const playerField = document.getElementById("playerField");
+
+  deck.addEventListener("click", () => {
+    const cards = deck.querySelectorAll(".deck-card");
+    if (cards.length === 0) return;
+
+    const topCard = cards[cards.length - 1]; // 가장 위 카드
+    const cardRect = topCard.getBoundingClientRect();
+    const fieldRect = playerField.getBoundingClientRect();
+
+    // 이동 거리 계산
+    const dx = fieldRect.left + fieldRect.width / 2 - (cardRect.left + cardRect.width / 2);
+    const dy = fieldRect.top + 40 - cardRect.top;
+
+    // 덱에서 카드 분리하여 body로 올림(애니메이션 가능하게)
+    document.body.appendChild(topCard);
+
+    topCard.style.position = "absolute";
+    topCard.style.left = cardRect.left + "px";
+    topCard.style.top = cardRect.top + "px";
+
+    // 이동 애니메이션
+    requestAnimationFrame(() => {
+      topCard.style.transform = `translate(${dx}px, ${dy}px)`;
+    });
+
+    // 애니메이션 완료 후 패로 이동
+    topCard.addEventListener("transitionend", () => {
+      topCard.style.transform = "none";
+      topCard.style.position = "static";
+      playerField.appendChild(topCard);
+    }, { once: true });
+  });
+</script>
+
+</body>
+</html>

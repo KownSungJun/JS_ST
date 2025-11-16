@@ -1,0 +1,92 @@
+body {
+    font-family: "Pretendard", sans-serif;
+    text-align: center;
+    background: #f4f6f9;
+}
+
+.title {
+    margin-top: 20px;
+}
+
+.board {
+    width: 500px;
+    margin: 0 auto;
+    background: white;
+    padding: 20px;
+    border-radius: 16px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.player-area {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+}
+
+.cards {
+    display: flex;
+    gap: 16px;
+}
+
+.card {
+    width: 60px;
+    height: 80px;
+    background: #e8ecf1;
+    border-radius: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 32px;
+    cursor: grab;
+    transition: 0.2s;
+}
+
+.card:active {
+    transform: scale(0.9);
+}
+
+.slot {
+    width: 80px;
+    height: 100px;
+    border: 3px dashed #888;
+    border-radius: 8px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.divider {
+    height: 2px;
+    background: #bbb;
+    margin: 25px 0;
+}
+
+/* ---------  아래 플레이어 대칭(거꾸로) --------- */
+.bottom-player {
+    /* transform: rotate(180deg); */
+}
+
+/* 하지만 텍스트는 다시 돌려놓음 */
+.flip-text {
+    /* transform: rotate(180deg); */
+}
+
+/* 아래쪽 카드/슬롯 안의 컨텐츠도 다시 반대로 돌림 */
+.flip {
+    /* transform: rotate(180deg); */
+}
+
+#result {
+    margin-top: 20px;
+}
+
+#resetBtn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    cursor: pointer;
+    background: #4a90e2;
+    color: white;
+}
