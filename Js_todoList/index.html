@@ -1,106 +1,149 @@
 <!DOCTYPE html>
 <html lang="ko">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Document</title>
-</head>
+  </head>
 
-<body>
+  <body>
     <style>
-        :root {
-            --primary: #4A6CF7;
-            --accent: #FF8C42;
-            --bg: #F5F7FA;
-            --text: #333;
-        }
+      :root {
+        --primary: #4a6cf7;
+        --accent: #ff8c42;
+        --bg: #f5f7fa;
+        --text: #333;
+      }
 
-        * {
-            padding: 0;
-            margin: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
+      * {
+        padding: 0;
+        margin: 0;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        box-sizing: border-box;
+      }
 
-        #wapper {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 700px;
-            overflow-y: scroll;
+      #wapper {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 700px;
+      }
 
-        }
+      #content-box {
+        border-radius: 10px;
+        background-color: #999;
+        width: 500px;
+        height: 500px;
+        border: 1px solid #000;
+        overflow-y: scroll;
+      }
 
-        #content-box {
-            border-radius: 10px;
-            background-color: #999;
-            width: 500px;
-            height: 500px;
-        }
+      #header-box {
+        border-radius: 10px 10px 0px 0px;
+        background-color: rgb(0, 197, 197);
+        color: #111;
+        height: 50px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
 
-        #header-box {
-            border-radius: 10px 10px 0px 0px;
-            background-color: rgb(0, 197, 197);
-            color: #111;
-            height: 50px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
+      .buttons {
+        border: 1px solid #111;
+        padding: 10px 20px;
+        border-radius: 10px;
+        background-color: skyblue;
+        cursor: pointer;
+        /* 손가락 모양 */
+        user-select: none;
+        /* 텍스트 드래그 방지 */
+        font-size: 16px;
+        transition: 0.2s;
+        /* hover 애니메이션 */
+      }
 
+      .buttons:hover {
+        background-color: rgb(0, 155, 216);
+      }
 
-        .buttons {
-            border: 1px solid #111;
-            padding: 10px 20px;
-            border-radius: 10px;
-            background-color: skyblue;
-            cursor: pointer;
-            /* 손가락 모양 */
-            user-select: none;
-            /* 텍스트 드래그 방지 */
-            font-size: 16px;
-            transition: 0.2s;
-            /* hover 애니메이션 */
-        }
+      .buttons:active {
+        transform: scale(0.96);
+      }
 
-        .buttons:hover {
-            background-color: rgb(0, 155, 216);
-        }
+      #section-box {
+        background-color: #4144ff;
+        border-radius: 5px;
+        height: 50px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
 
-        .buttons:active {
-            transform: scale(0.96);
-        }
+      #section-box * {
+        margin-left: 10px;
+      }
 
-        .section-box {
-            background-color: #4144ff;
-            border-radius: 5px;
-            height: 50px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
+      .todo-box {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        height: 50px;
+        border-top: 1px solid #000;
+        border-bottom: 1px solid #000;
+        background-color: #ff4242;
+      }
 
-        .section-box * {
-            margin-left: 10px;
-        }
+      .todo-box * {
+        margin-left: 10px;
+      }
     </style>
     <div id="wapper">
-        <div id="content-box">
-            <header id="header-box">
-                <span id="header-text">To do List</span>
-            </header>
-            <div class="section-box">
-
-                <input type="text" id="to-do-context">
-                <span class="buttons" id="add_btn">+</span>
-                <span class="buttons" id="del_btn">X</span>
-            </div>
+      <div id="content-box">
+        <header id="header-box">
+          <span id="header-text">To do List</span>
+        </header>
+        <div id="section-box">
+          <input type="text" id="to-do-context" />
+          <span class="buttons" id="add-btn">+</span>
+          <span class="buttons" id="del-btn">X</span>
         </div>
+      </div>
     </div>
 
     <script>
+      const content_box = document.getElementById("content-box");
+      const add_btn = document.getElementById("add-btn");
+      const del_btn = document.getElementById("del-btn");
+      let todo_count = 1;
+      add_btn.addEventListener("click", () => {
+        let todo_name = document.getElementById("to-do-context").value;
+        content_box.insertAdjacentHTML("beforeend", `
+          <div class="todo-box">
+           <span>해야할 일 ${todo_count} : ${todo_name}</span>
+           <span class="buttons" id="complete_btn">완료</span>
+           <span class="buttons" id="del_btn">X</span>
+         </div>
+        `) 
 
+        // alert(todo_count);
+        // todo_count += 1;
+      });
+      //이벤트 추가 하는 법
+      // content_box.addEventListener("click", () => {
+      //   alert("안녕하세요");
+      // });
+
+      //innerHTML, ``, ${} 활용, innerHTML vs insertAdjacentHTML -> 이거 쓰셈
+      // for (let i = 1; i < 10; i++) {
+      //   content_box.innerHTML += `
+      //   <div class="todo-box">
+      //     <span>해야할 일 ${i}</span>
+      //     <span class="buttons" id="complete_btn">완료</span>
+      //     <span class="buttons" id="del_btn">X</span>
+      //   </div>
+      // `;
+      // }
     </script>
-</body>
-
+  </body>
 </html>
