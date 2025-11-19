@@ -113,3 +113,38 @@ Google Gmail API : Google Developers에서 개발한 Gmail API 예제 코드로,
 MMSE : 중앙 치매센터 자료실에 있는 MMSE-DS 점수 변환기 자료로, 인지 기능 저하가 의심되는지를 판별하는 문제를 참고하였습니다.
 출처 : https://www.nid.or.kr/info/dataroom_view.aspx?BID=21
 
+농구 스킬 모음
+
+수비
+2-3 지역
+3-2 지역
+
+공격
+온볼
+
+오프볼
+
+2 to 2 전략
+
+chess 오프닝(폰 구조, 중앙 차지)
+1. Italian Game(내가 백일 때 많이 씀)
+메인 라인 : e4, e5, Nf3, Nc6, Bc4
+프라이드 리버 어택(ㅈㄴ 좋음)
+2. French Defense(내가 흑일 때 많이 씀)
+메인 라인 : e4, e6, d4, d5, e5
+3. Scandinavian Defense(내가 흑일 때 2번째로 많이 씀)
+메인 바리에이션 : e4, d5, exd5, Qxd5, Qa5
+1. Qxd5, 
+2. Nf6, d4
+실수
+다미아노 디펜스(흑 기준 실수)
+e4, e5, Nf3, f6?, Nxe5(가능)
+루이로페즈 익스체인지(백 기준 실수)
+페트로프 디펜스(흑 기준 실수)
+4. 카로칸 디펜스
+e4 c6 d4 d5
+
+페트로프 디펜스
+
+대칭이 되는 포지션이면 흑이 기분이 좋음
+(왜? 백의 선공 이점을 못살림)
