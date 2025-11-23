@@ -1,18 +1,4 @@
-* {
-  padding: 0;
-  margin: 0;
-  font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif
-}
 
-a {
-  text-decoration: none;
-  color: #000;
-  font-size: 30px;
-}
-
-a:hover {
-  color: purple;
-}
 body {
   display: flex;
   justify-content: center;
@@ -23,12 +9,12 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
-flex-direction: column; /* 전체는 세로 배치 */
+  flex-direction: column; /* 전체는 세로 배치 */
   /* height: 100vh;
   width: 100vh; */
   width: 900px;
   height: 900px;
-  background-color: lightblue;
+  background-color: rgb(133, 190, 209);
   border: 1px solid #111;
   border-radius: 10px;
 
@@ -59,7 +45,7 @@ flex-direction: column; /* 전체는 세로 배치 */
   display: flex;
   justify-content: center;
   align-items: center;
-  background-color: red;
+  background-color: rgb(238, 71, 71);
   border: 1px solid #111;
   border-radius: 10px;
 }
@@ -89,7 +75,7 @@ flex-direction: column; /* 전체는 세로 배치 */
   width: 100px;
 }
 .point-list-area {
-  background-color: blue;
+  background-color: rgb(83, 83, 255);
   display: flex;
   justify-content: center;
   align-items: center;

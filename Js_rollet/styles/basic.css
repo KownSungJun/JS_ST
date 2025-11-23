@@ -1,0 +1,15 @@
+* {
+  padding: 0;
+  margin: 0;
+  font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif
+}
+
+a {
+  text-decoration: none;
+  color: #000;
+  font-size: 30px;
+}
+
+a:hover {
+  color: purple;
+}

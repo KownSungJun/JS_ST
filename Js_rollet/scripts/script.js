@@ -37,44 +37,6 @@ function getRandomTarget(count) {
 }
 
 
-// function slowStop(reel, targetIndex, callback) {
-//   reel.style.animation = "none"
-//   reel.style.animationPlayState = "paused";
-//   let current = getTranslateY(reel);
-//   let targetY = -(targetIndex * imgHeight);
-
-//   targetY -= imgHeight * totalImgs * 3;
-
-//   let speed = 25;
-//   let friction = 0.95;
-
-//   function animate() {
-//     speed *= friction;
-
-//     current -= speed;
-
-//     if (current <= targetY) {
-//       reel.style.transform = `translateY(${targetY}px)`;
-//       callback();
-//       return;
-//     }
-
-//     reel.style.transform = `translateY(${current}px)`;
-//     requestAnimationFrame(animate);
-//   }
-//   requestAnimationFrame(animate);
-// }
-
-// function getTranslateY(element) {
-//   const matrix = window.getComputedStyle(element).transform;
-
-//   if (matrix === "none") return 0;
-//   //정규식으로 괄호 안에 있는 숫자 목록만 추출
-//   const values = matrix.match(/matrix.*\((.+\))/)[1].split(", ");
-//   return parseFloat(values[5])
-// }
-
-
 coin_area.innerHTML = `coin <br> ${coin}`
 //변수에 따로 안넣고 바로 이벤트 추가 가능
 document.getElementById('play').addEventListener('click', () => {
@@ -85,7 +47,7 @@ document.getElementById('play').addEventListener('click', () => {
       return;
     }
     coin--;
-    coin_area.innerText = `coin = ${coin}`
+    coin_area.innerText = `coin ${coin}`
     stopIndex = 0;
     //모든 칸 다시 에니메이션 동작
     reels.forEach((reel) => {
@@ -95,36 +57,89 @@ document.getElementById('play').addEventListener('click', () => {
 })
 
 function checkResult() {
-  console.log('!!')
-  let seven_count = 0;
+
   let same_image_count = 0;
   let pair_count = 0;
-  console.log(result_list)
+
+  //7 개수 연산
+  switch(seven_count_func(result_list)) {
+    case 2:
+      alert('7 페어 coin +1');
+      coin+=1;
+      coin_area.innerText = `coin ${coin}`
+      return;
+    case 3:
+      alert('7 트리플 coin +3');
+      coin+=3;
+      coin_area.innerText = `coin ${coin}`
+      return;
+    case 4:
+      alert('7 쿼드라 coin +10');
+      coin+=10;
+      coin_area.innerText = `coin ${coin}`
+      return;
+    case 5:
+      alert('7 펜타 coin +777');
+      coin+=777;
+      coin_area.innerText = `coin ${coin}`
+      return;
+  }
+
+  //그 외 일반 그림 연산
+  switch(basic_count_func(result_list)) {
+    case 3:
+      alert('일반 그림 트리플 coin +1');
+      coin+=1;
+      coin_area.innerText = `coin ${coin}`
+      return;
+    case 4:
+      alert('일반 그림 쿼드라 coin +3');
+      coin+=3;
+      coin_area.innerText = `coin ${coin}`
+      return;
+    case 5:
+      alert('일반 그림 펜타 coin +5');
+      coin+=5;
+      coin_area.innerText = `coin ${coin}`
+      return;
+  }
+}
+
+function seven_count_func(result_list) {
+  console.log('7 함수 실행')
+  let seven_count = 0;
   for(let i=0;i<result_list.length;i++) {
-    
     if(result_list[i] == 4) {
       seven_count++;
     }
   }
-  switch(seven_count) {
-    case 2:
-      alert('7 페어 coin +1');
-      coin+=1;
-      break;
-    case 3:
-      alert('7 트리플 coin +3');
-      coin+=3;
-      break;
-    case 4:
-      alert('7 쿼드라 coin +10');
-      coin+=10;
-      break;
-    case 5:
-      alert('7 펜타 coin +777');
-      coin+=777;
-      break;
-  }
+  return seven_count;
+}
 
+function basic_count_func(result_list) {
+  console.log('basic 함수 실행')
+  //개구리, 병아리, 해파리, 코인 순
+  let basic_count = [0,0,0,0];
+  for(let i=0;i<result_list.length;i++) {
+    //개구리
+    if(result_list[i] == 0) {
+      basic_count[0]++;
+    } else if(result_list[i] == 1) {
+      basic_count[1]++;
+    } else if(result_list[i] == 2) {
+      basic_count[2]++;
+    } else if(result_list[i] == 3) {
+      basic_count[3]++;
+    } 
+  }
+  console.log(basic_count)
+  let max = basic_count[0];
+  for(let i=1;i<basic_count.length;i++) {
+    if(max < basic_count[i]) {
+      max = basic_count[i];
+    }
+  }
+  return max;
 }
 
 document.getElementById("stop").addEventListener("click", () => {
@@ -145,25 +160,15 @@ document.getElementById("stop").addEventListener("click", () => {
   reel.style.transform = `translateY(${targetY}px)`;
 
   stopIndex++;
-  //마지막에 룰렛이 다 안멈췄는데도 checkResult alert가 실행되는 버그 있음
+  //마지막에 룰렛이 다 안멈췄는데도 checkResult alert가 실행되는 버그 있음 => 해결!
   if (stopIndex === reels.length) {
     running = false;
-    checkResult(stopIndex);
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        checkResult();
+      });
+    });
   }
 });
 
-
-
-// const imgHeight = 100;
-// const total = 5;
-// const resetPoint = imgHeight * total;
-
-// function step() {
-//     pos += speed;
-//     if(pos >= resetPoint) pos = 0;
-//     images.style.transform = `translateY(${-pos}px)`;
-//     rafId = requestAnimationFrame(step)
-// }
-
-
-// step()
+//스타일이 너무 구려서 스타일, 컴포넌트 변경 해야할 듯

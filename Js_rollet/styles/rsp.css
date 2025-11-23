@@ -1,0 +1,95 @@
+body {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+.container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column; /* 전체는 세로 배치 */
+  /* height: 100vh;
+  width: 100vh; */
+  width: 1500px;
+  height: 900px;
+  background-color: rgb(133, 190, 209);
+  border: 1px solid #111;
+  border-radius: 10px;
+}
+#rsp-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  /*가로 배치*/
+  flex-direction: row;
+}
+
+#title {
+  font-size: 50px;
+  margin-bottom: 30px;
+}
+
+#wheel {
+  width: 500px;
+  height: 500px;
+  border-radius: 50%;
+  border: 10px solid #f1c40f;
+  animation: spin 2s linear infinite;
+  background: repeating-conic-gradient(
+    #e74c3c 0deg 30deg,
+    #3498db 30deg 60deg,
+    #2ecc71 60deg 90deg
+  );
+}
+#player-rsp {
+    display: inline-block;
+    object-fit: cover;
+    width: 200px;
+    height: 300px;
+    background-color: #f1c40f;
+}
+
+#select-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 300px;
+    height: 500px;
+    background-color: rgb(114, 103, 214);
+    flex-direction: column;
+    gap: 30px;
+}
+
+#button-container {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    /*gap vs margin*/
+    gap: 10px;
+}
+.select-button {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 10px;
+    width: 50px;
+    height: 50px;
+    border: 1px solid #111;
+    background-color: #2ecc71;
+    border-radius: 50%;
+}
+
+.select-button:hover {
+    cursor: pointer;
+    background-color: #177c41;
+}
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
