@@ -14,21 +14,32 @@
         <div class="play-container">
           <div id="wheel"></div>
         </div>
+        <canvas>
+
+        </canvas>
+
         <div id="select-container">
+          <div id="win-draw-lose-panel">
+            <span id="win">이겼다</span>
+            <span id="draw">비겼다</span>
+            <span id="lose">졌다</span>
+          </div>
           <img id="player-rsp" />
           <div id="button-container">
-            <span class="select-button">가위</span>
-            <span class="select-button">바위</span>
-            <span class="select-button">보</span>
+            <span id="btn-scissors" class="select-button">가위</span>
+            <span id="btn-rock" class="select-button">바위</span>
+            <span id="btn-paper" class="select-button">보</span>
           </div>
         </div>
         <div id="coin-container">
-          <img src="" alt="" />
+          <img id="coin-image" src="https://cdn-icons-png.flaticon.com/128/9382/9382189.png" alt="" />
           <span>coin 10</span>
+          <span id="insert-coin">코인 넣기</span>
         </div>
       </div>
 
       <a href="./index.html">룰렛 바로가기</a>
     </div>
+    <script src="../scripts/rsp.js"></script>
   </body>
 </html>

@@ -31,6 +31,7 @@ body {
 }
 
 #wheel {
+  display: none;
   width: 500px;
   height: 500px;
   border-radius: 50%;
@@ -42,6 +43,7 @@ body {
     #2ecc71 60deg 90deg
   );
 }
+
 #player-rsp {
     display: inline-block;
     object-fit: cover;
@@ -68,6 +70,7 @@ body {
     align-items: center;
     /*gap vs margin*/
     gap: 10px;
+    margin-bottom: 10px;
 }
 .select-button {
     display: flex;
@@ -85,6 +88,12 @@ body {
     cursor: pointer;
     background-color: #177c41;
 }
+
+canvas {
+  border: 1px solid black;
+  height: 300px;
+  width: 300px;
+}
 @keyframes spin {
   0% {
     transform: rotate(0deg);
@@ -92,4 +101,46 @@ body {
   100% {
     transform: rotate(360deg);
   }
+}
+
+#win-draw-lose-panel {
+  border: 1px solid #000;
+  padding: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 10px;
+}
+
+#win-draw-lose-panel span {
+  margin: 0px 10px;
+  border: 1px solid #000;
+  padding: 10px 5px;
+}
+
+#win-draw-lose-panel #win {
+  background-color: #947a12;
+}
+
+#win-draw-lose-panel #draw {
+  background-color: rgb(37, 115, 117);
+}
+
+#win-draw-lose-panel #lose {
+  background-color: #993227;
+}
+
+#coin-image {
+  width: 30px;
+  object-fit: cover;
+}
+
+#insert-coin {
+  display: flex;
+  width: 100px;
+  height: 30px;
+  background-color: #2ecc71;
+  text-align: center;
+  justify-content: center;
+  align-items: center;
 }
