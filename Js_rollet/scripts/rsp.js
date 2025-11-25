@@ -3,11 +3,13 @@ const ctx = canvas.getContext('2d');
 // canvas.width = window.innerWidth;
 // canvas.height = window.innerHigth;
 // 가위 바위 보 이미지 로드
+
 const images = {
     rock: new Image(),
     scissors: new Image(),
     paper: new Image()
 };
+
 let currentRsp = "rock";
 let rspInterval = null;
 let isSpinning = true;
@@ -134,7 +136,14 @@ function stopAndCheck(playerChoice) {
   if (rspInterval) clearInterval(rspInterval);
 
   const result = judge(playerChoice, currentRsp);
-  alert(`플레이어: ${playerChoice}\n컴퓨터: ${currentRsp}\n결과: ${result}`);
+  // alert(`플레이어: ${playerChoice}\n컴퓨터: ${currentRsp}\n결과: ${result}`);
+  if(result === "비겼습니다!") {
+    document.getElementById('draw').style.backgroundColor = "#2ecc71";
+  } else if(result === "승리!") {
+    document.getElementById('win').style.backgroundColor = "#ccc92eff";
+  } else {
+    document.getElementById('lose').style.backgroundColor = "#cc2e2eff";
+  }
 }
 
 document.getElementById("btn-rock").onclick = () => stopAndCheck("rock");

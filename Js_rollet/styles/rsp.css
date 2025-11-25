@@ -116,6 +116,7 @@ canvas {
   margin: 0px 10px;
   border: 1px solid #000;
   padding: 10px 5px;
+  cursor: default;
 }
 
 #win-draw-lose-panel #win {
@@ -143,4 +144,5 @@ canvas {
   text-align: center;
   justify-content: center;
   align-items: center;
+  cursor: pointer;
 }
