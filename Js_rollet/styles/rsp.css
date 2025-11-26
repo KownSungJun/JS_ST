@@ -23,6 +23,7 @@ body {
   align-items: center;
   /*가로 배치*/
   flex-direction: row;
+  gap: 30px;
 }
 
 #title {
@@ -31,17 +32,93 @@ body {
 }
 
 #wheel {
-  display: none;
+  /* display: none; */
+  position: relative;
   width: 500px;
   height: 500px;
   border-radius: 50%;
   border: 10px solid #f1c40f;
-  animation: spin 2s linear infinite;
-  background: repeating-conic-gradient(
-    #e74c3c 0deg 30deg,
-    #3498db 30deg 60deg,
-    #2ecc71 60deg 90deg
-  );
+  overflow: hidden;
+  transform: rotate(45deg);
+  /* animation: spin 2s linear infinite; */
+  /* background: repeating-conic-gradient(
+    #177c41 0deg 30deg,
+    #d6c4bfff 30deg 60deg
+  ); */
+}
+
+
+
+#wheel span {
+  position: absolute;
+  display: inline-block;
+  width: 50%;
+  height: 50%;
+  top: 0;
+  left: 50%;
+  transform-origin: 0% 100%;
+  clip-path: polygon(0 100%, 100% 0, 0 0);
+}
+#wheel span:nth-child(odd) { background: #177c41; }
+#wheel span:nth-child(even) { background: #d6c4bf; }
+span b {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  top: 20%;
+  left: 20%;
+  font-size: 30px;
+  font-weight: bold;
+  color: #000;
+}
+
+#wheel span:nth-child(1) { transform: rotate(0deg); }
+#wheel span:nth-child(1) b {transform: rotate(0deg);}
+#wheel span:nth-child(2) { transform: rotate(30deg); }
+#wheel span:nth-child(2) b {transform: rotate(30deg);}
+#wheel span:nth-child(3) { transform: rotate(60deg); }
+#wheel span:nth-child(4) { transform: rotate(90deg); }
+#wheel span:nth-child(5) { transform: rotate(120deg); }
+#wheel span:nth-child(6) { transform: rotate(150deg); }
+#wheel span:nth-child(7) { transform: rotate(180deg); }
+#wheel span:nth-child(8) { transform: rotate(210deg); }
+#wheel span:nth-child(9) { transform: rotate(240deg); }
+#wheel span:nth-child(10) { transform: rotate(270deg); }
+#wheel span:nth-child(11) { transform: rotate(300deg); }
+#wheel span:nth-child(12) { transform: rotate(330deg); 
+  clip-path: polygon(0 100%, 58% 0, 0 0);
+}
+/* #spin1 {
+
+  clip-path: polygon(50% 100%, 90% 0, 10% 0);
+  background-color: #177c41;
+  top: 0;
+  left: 120px;
+}
+#spin2 {
+  clip-path: polygon(100% 92%, 0 50%, 100% 8%);
+  background-color: #d6c4bfff;
+  top: 120px;
+  right: 0;
+} */
+/* #spin1 b {
+  
+  transform: translate(-50%, -50%);
+} */
+
+
+
+#wheel img {
+  display: inline-block;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(-45deg);
+  width: 300px;
+  object-fit: scale-down;
+  background-color: #177c41;
+  border-radius: 50%;
+  border: 10px solid #d6c4bfff;
+  
 }
 
 #player-rsp {
@@ -51,7 +128,6 @@ body {
     height: 300px;
     background-color: #f1c40f;
 }
-
 #select-container {
     display: flex;
     justify-content: center;
@@ -60,6 +136,8 @@ body {
     height: 500px;
     background-color: rgb(114, 103, 214);
     flex-direction: column;
+    border-radius: 10px;
+    border: 1px solid #000;
     gap: 30px;
 }
 
@@ -146,3 +224,4 @@ canvas {
   align-items: center;
   cursor: pointer;
 }
+

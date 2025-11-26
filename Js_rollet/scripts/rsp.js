@@ -1,21 +1,11 @@
-const canvas = document.querySelector('canvas')
-const ctx = canvas.getContext('2d');
-// canvas.width = window.innerWidth;
-// canvas.height = window.innerHigth;
-// 가위 바위 보 이미지 로드
 
-const images = {
-    rock: new Image(),
-    scissors: new Image(),
-    paper: new Image()
-};
-
-let currentRsp = "rock";
+let currentRsp = "paper";
 let rspInterval = null;
 let isSpinning = true;
-images.rock.src = "https://cdn-icons-png.flaticon.com/128/12355/12355903.png";
-images.scissors.src = "https://cdn-icons-png.flaticon.com/128/9534/9534501.png";
-images.paper.src = "https://cdn-icons-png.flaticon.com/128/3562/3562093.png";
+let coin = 10;
+// images.rock.src = "https://cdn-icons-png.flaticon.com/128/12355/12355903.png";
+// images.scissors.src = "https://cdn-icons-png.flaticon.com/128/9534/9534501.png";
+// images.paper.src = "https://cdn-icons-png.flaticon.com/128/3562/3562093.png";
 // 중앙 이미지 그리기
 function drawCenterImage(imgKey) {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -38,7 +28,8 @@ function spinImages() {
 // 코인 넣기 → 이미지 무한 변경 시작
 document.getElementById("insert-coin").addEventListener("click", () => {
     if (isSpinning) return;
-
+    coin-=1;
+    document.getElementById('coin').innerHTML = coin
     isSpinning = true;
     spinImages();
 });
