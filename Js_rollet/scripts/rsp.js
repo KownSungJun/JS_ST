@@ -1,144 +1,140 @@
-
 let currentRsp = "paper";
 let rspInterval = null;
-let isSpinning = true;
+let gameReady = false;
 let coin = 10;
-// images.rock.src = "https://cdn-icons-png.flaticon.com/128/12355/12355903.png";
-// images.scissors.src = "https://cdn-icons-png.flaticon.com/128/9534/9534501.png";
-// images.paper.src = "https://cdn-icons-png.flaticon.com/128/3562/3562093.png";
-// 중앙 이미지 그리기
-function drawCenterImage(imgKey) {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+const rspImages = {
+  scissors: "https://cdn-icons-png.flaticon.com/128/13480/13480938.png",
+  rock: "https://cdn-icons-png.flaticon.com/128/3562/3562093.png",
+  paper: "https://cdn-icons-png.flaticon.com/128/12355/12355903.png",
+};
+// ------- RSP 결과 처리 -------
+const buttons = {
+  scissors: document.querySelector("#btn-scissors"),
+  rock: document.querySelector("#btn-rock"),
+  paper: document.querySelector("#btn-paper"),
+};
 
-    const img = images[imgKey];
-    ctx.drawImage(img, centerX - 50, centerY - 50, 100, 100);
-}
-// 무한 루프 이미지 변경
-function spinImages() {
-    const keys = ["rock", "scissors", "paper"];
-
-    currentIndex = (currentIndex + 1) % keys.length;
-
-    drawCenterImage(keys[currentIndex]);
-
-    if (isSpinning) {
-        animationFrame = requestAnimationFrame(spinImages);
-    }
-}
 // 코인 넣기 → 이미지 무한 변경 시작
 document.getElementById("insert-coin").addEventListener("click", () => {
-    if (isSpinning) return;
-    coin-=1;
-    document.getElementById('coin').innerHTML = coin
-    isSpinning = true;
-    spinImages();
+  if (coin <= 0) {
+    alert("코인이 부족합니다!");
+    return;
+  }
+  if (gameReady) return;
+  coin -= 1;
+  document.getElementById("coin").innerHTML = `coin <br> ${coin}`;
+  gameReady = true;
+  
+  alert("게임을 시작하세요! (가위/바위/보 선택)");
+
+  // 1) 빠르게 가위→바위→보 순서로 돌아가기
+  const order = ["scissors", "rock", "paper"];
+  let idx = 0;
+
+  cycleInterval = setInterval(() => {
+    document.getElementById("centerImage").src = rspImages[order[idx]];
+    // if(idx == 0) {
+    //   document.getElementById("centerImage").style.transform = 'rotate(90deg)';
+    // } else {
+    //   document.getElementById("centerImage").style.transform = 'rotate(0deg)';
+    // }
+    idx = (idx + 1) % order.length;
+  }, 200);  // 0.08초마다 교체 → 회전처럼 보임
+
+  // 2) 1~2초 뒤 랜덤 결과 선택 후 멈추기 
+  const duration = Math.random() * 1000 + 1000; // 1000~2000ms
+
+  // setTimeout(() => {
+  //   clearInterval(cycleInterval);
+  // });
+});
+
+function getComputerChoice() {
+  const arr = ["scissors", "rock", "paper"];
+  return arr[Math.floor(Math.random() * 3)];
+}
+
+
+function judge(player, computer) {
+  if (player === computer) return "draw";
+  if (
+    (player === "scissors" && computer === "paper") ||
+    (player === "rock" && computer === "scissors") ||
+    (player === "paper" && computer === "rock")
+  )
+    return "win";
+  return "lose";
+}
+  function startRouletteSlow(index, speed) {
+    if (speed > 300) {
+      stopRoulette(index);
+      return;
+    }
+
+    spins.forEach(span => span.classList.remove("highlight"));
+    spins[index].classList.add("highlight");
+
+    index = (index + 1) % spins.length;
+
+    setTimeout(() => startRouletteSlow(index, speed + 20), speed);
+  }
+  // ------- 최종 당첨 처리 -------
+  function stopRoulette(finalIndex) {
+    finalIndex = (finalIndex - 1 + spins.length) % spins.length;
+
+    spins.forEach(span => span.classList.remove("highlight"));
+    spins[finalIndex].classList.add("highlight");
+
+    const value = parseInt(spins[finalIndex].querySelector("b").innerText);
+
+    coin += value;
+    updateCoin();
+
+    alert(`🎉 당첨! ${value} 코인을 획득했습니다!`);
+  }
+Object.keys(buttons).forEach((key) => {
+  buttons[key].addEventListener("click", () => {
+    if (!gameReady) {
+      alert("먼저 코인을 넣으세요!");
+      return;
+    }
+
+    const comp = getComputerChoice();
+    const result = judge(key, comp);
+
+    if (result === "win") {
+      // startRoulette();
+    } else {
+      alert("졌거나 비겼습니다! 다시 코인을 넣고 도전하세요.");
+    }
+
+    gameReady = false;
+  });
 });
 
 //총 12칸
-const coin_numbers = [
-    4,1,2,7,4,2,20,1,2,4,7,2
-]
+const coin_numbers = [4, 1, 2, 7, 4, 2, 20, 1, 2, 4, 7, 2];
 
-//센터 좌표
-const cx = canvas.width / 2;
-const cy = canvas.height / 2;
-const radius = 200;
-// const colors = ["#177c41", "#d6c4bfff"]
-// c.fillRect(100,100,100,100)
-// console.log(canvas)
-// centerImage.onload = () => {
-//     draw();
-// }
+const img = document.getElementById("player-rsp");
 
-// function draw() {
-//     ctx.clearRect(0,0,canvas.width, canvas.height);
-    
-//     drawRoulette();
-//     drawCenterImage();
 
-// }
 
-// ----------------------------------------------
-// 룰렛 그리기 함수
-// ----------------------------------------------
-function drawRoulette() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-  for (let i = 0; i < coin_numbers.length; i++) {
-    const angle = (Math.PI * 2 / coin_numbers.length) * i; // 각 칸의 각도
-
-    // 칸 위치 계산
-    const x = cx + Math.cos(angle) * radius;
-    const y = cy + Math.sin(angle) * radius;
-
-    // 현재 빛나는 칸이면 색상 강조
-    ctx.fillStyle = i === currentLightIndex ? "yellow" : "white";
-    ctx.beginPath();
-    ctx.arc(x, y, 20, 0, Math.PI * 2);
-    ctx.fill();
-
-    // 칸 번호
-    ctx.fillStyle = "black";
-    ctx.font = "16px Arial";
-    ctx.fillText(i + 1, x - 5, y + 5);
-  }
-
-  // 중앙 이미지 그리기
-  const img = images[currentRsp];
-  ctx.drawImage(img, cx - 40, cy - 40, 80, 80);
-}
-// ----------------------------------------------
-// 룰렛 계속 회전 애니메이션
-// ----------------------------------------------
-let currentLightIndex = 0;
-setInterval(() => {
-  currentLightIndex = (currentLightIndex + 1) % coin_numbers.length;
-  drawRoulette();
-}, 100);
-// ----------------------------------------------
-// 코인 넣기 → 중앙 이미지 무한 변경
-// ----------------------------------------------
-document.getElementById("insert-coin").addEventListener("click", () => {
-  if (rspInterval) clearInterval(rspInterval);
-
-  const keys = ["rock", "paper", "scissors"];
-
-  rspInterval = setInterval(() => {
-    currentRsp = keys[Math.floor(Math.random() * keys.length)];
-    drawRoulette();
-  }, 150);
+document.getElementById("btn-scissors").addEventListener("mouseenter", () => {
+  img.src = rspImages.scissors;
+  img.classList.add("show");
+});
+document.getElementById("btn-rock").addEventListener("mouseenter", () => {
+  img.src = rspImages.rock;
+  img.classList.add("show");
+});
+document.getElementById("btn-paper").addEventListener("mouseenter", () => {
+  img.src = rspImages.paper;
+  img.classList.add("show");
 });
 
-// ----------------------------------------------
-// 가위바위보 버튼 클릭 시 결과 판단
-// ----------------------------------------------
-function judge(player, ai) {
-  if (player === ai) return "비겼습니다!";
-  if (
-    (player === "rock" && ai === "scissors") ||
-    (player === "paper" && ai === "rock") ||
-    (player === "scissors" && ai === "paper")
-  ) {
-    return "승리!";
-  }
-  return "패배!";
-}
-function stopAndCheck(playerChoice) {
-  if (rspInterval) clearInterval(rspInterval);
-
-  const result = judge(playerChoice, currentRsp);
-  // alert(`플레이어: ${playerChoice}\n컴퓨터: ${currentRsp}\n결과: ${result}`);
-  if(result === "비겼습니다!") {
-    document.getElementById('draw').style.backgroundColor = "#2ecc71";
-  } else if(result === "승리!") {
-    document.getElementById('win').style.backgroundColor = "#ccc92eff";
-  } else {
-    document.getElementById('lose').style.backgroundColor = "#cc2e2eff";
-  }
-}
-
-document.getElementById("btn-rock").onclick = () => stopAndCheck("rock");
-document.getElementById("btn-paper").onclick = () => stopAndCheck("paper");
-document.getElementById("btn-scissors").onclick = () => stopAndCheck("scissors");
-
-
+// 버튼에서 마우스가 나가면 이미지 사라짐
+document.querySelectorAll(".select-button").forEach(btn => {
+  btn.addEventListener("mouseleave", () => {
+    img.classList.remove("show");
+  });
+});
