@@ -2,6 +2,7 @@ let currentRsp = "paper";
 let rspInterval = null;
 let gameReady = false;
 let coin = 10;
+//rsp 이미지
 const rspImages = {
   scissors: "https://cdn-icons-png.flaticon.com/128/13480/13480938.png",
   rock: "https://cdn-icons-png.flaticon.com/128/3562/3562093.png",
@@ -16,6 +17,9 @@ const buttons = {
 
 // 코인 넣기 → 이미지 무한 변경 시작
 document.getElementById("insert-coin").addEventListener("click", () => {
+  document.getElementById("win").style.backgroundColor = "#947a12"
+  document.getElementById("draw").style.backgroundColor = "rgb(37, 115, 117)"
+  document.getElementById("lose").style.backgroundColor = "#993227"
   if (coin <= 0) {
     alert("코인이 부족합니다!");
     return;
@@ -33,20 +37,9 @@ document.getElementById("insert-coin").addEventListener("click", () => {
 
   cycleInterval = setInterval(() => {
     document.getElementById("centerImage").src = rspImages[order[idx]];
-    // if(idx == 0) {
-    //   document.getElementById("centerImage").style.transform = 'rotate(90deg)';
-    // } else {
-    //   document.getElementById("centerImage").style.transform = 'rotate(0deg)';
-    // }
     idx = (idx + 1) % order.length;
   }, 200);  // 0.08초마다 교체 → 회전처럼 보임
 
-  // 2) 1~2초 뒤 랜덤 결과 선택 후 멈추기 
-  const duration = Math.random() * 1000 + 1000; // 1000~2000ms
-
-  // setTimeout(() => {
-  //   clearInterval(cycleInterval);
-  // });
 });
 
 function getComputerChoice() {
@@ -54,8 +47,28 @@ function getComputerChoice() {
   return arr[Math.floor(Math.random() * 3)];
 }
 
+function getRulletChoice() {
+  const coin_numbers = [4, 1, 2, 7, 4, 2, 20, 1, 2, 4, 7, 2];
+  const weightMap = {
+    1: 50,
+    2: 30,
+    4: 15,
+    7: 4,
+    20: 1,
+  }
+  
+  const weightedList = []
 
+  coin_numbers.forEach(value => {
+    for(let i=0;i<weightMap[value];i++) {
+      weightedList.push(value)
+    }
+  })
+  const randomIndex = Math.floor(Math.random() * weightedList.length);
+  return weightedList[randomIndex];
+}
 function judge(player, computer) {
+  document.getElementById("centerImage").src = rspImages[player];
   if (player === computer) return "draw";
   if (
     (player === "scissors" && computer === "paper") ||
@@ -80,17 +93,17 @@ function judge(player, computer) {
   }
   // ------- 최종 당첨 처리 -------
   function stopRoulette(finalIndex) {
-    finalIndex = (finalIndex - 1 + spins.length) % spins.length;
+    // finalIndex = (finalIndex - 1 + spins.length) % spins.length;
 
-    spins.forEach(span => span.classList.remove("highlight"));
-    spins[finalIndex].classList.add("highlight");
+    // spins.forEach(span => span.classList.remove("highlight"));
+    // spins[finalIndex].classList.add("highlight");
 
-    const value = parseInt(spins[finalIndex].querySelector("b").innerText);
+    //const value = parseInt(spins[finalIndex].querySelector("b").innerText);
 
-    coin += value;
-    updateCoin();
+    coin += finalIndex;
+    document.getElementById("coin").innerHTML = `coin <br> ${coin}`;
 
-    alert(`🎉 당첨! ${value} 코인을 획득했습니다!`);
+    alert(`🎉 당첨! ${finalIndex} 코인을 획득했습니다!`);
   }
 Object.keys(buttons).forEach((key) => {
   buttons[key].addEventListener("click", () => {
@@ -103,20 +116,25 @@ Object.keys(buttons).forEach((key) => {
     const result = judge(key, comp);
 
     if (result === "win") {
-      // startRoulette();
-    } else {
-      alert("졌거나 비겼습니다! 다시 코인을 넣고 도전하세요.");
-    }
+      alert("이겼습니다! 룰렛이 돌아갑니다!");
+      document.getElementById("win").style.backgroundColor = "#e5ff00ff"
+      stopRoulette(getRulletChoice())
 
+    } else if(result === "draw"){
+      alert("비겼습니다! 다시 코인을 넣고 도전하세요.");
+      document.getElementById("draw").style.backgroundColor = "#00ff88ff"
+    } else {
+      alert("졌습니다! 다시 코인을 넣어 도전하세요.");
+      document.getElementById("lose").style.backgroundColor = "#ff0000ff"
+    }
+    
     gameReady = false;
   });
 });
 
-//총 12칸
-const coin_numbers = [4, 1, 2, 7, 4, 2, 20, 1, 2, 4, 7, 2];
+
 
 const img = document.getElementById("player-rsp");
-
 
 
 document.getElementById("btn-scissors").addEventListener("mouseenter", () => {
@@ -131,6 +149,7 @@ document.getElementById("btn-paper").addEventListener("mouseenter", () => {
   img.src = rspImages.paper;
   img.classList.add("show");
 });
+
 
 // 버튼에서 마우스가 나가면 이미지 사라짐
 document.querySelectorAll(".select-button").forEach(btn => {

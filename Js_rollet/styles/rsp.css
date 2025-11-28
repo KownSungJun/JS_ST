@@ -243,3 +243,10 @@ span b {
 #player-rsp.show {
   opacity: 1;
 }
+
+/* 룰렛 밝게 표시되는 효과 */
+.highlight {
+  filter: brightness(1.6);
+  transform: scale(1.05);
+  transition: 0.1s;
+}
