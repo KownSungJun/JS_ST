@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <style>
+      * {
+        padding: 0;
+        margin: 0;
+        box-sizing: border-box;
+      }
+      body {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 100vw;
+        height: 100vh;
+      }
+      #game-container {
+        display: flex;
+        position: relative;
+        flex-direction: column;
+        justify-content: space-between;
+        border: 1px solid #000;
+        width: 1000px;
+        height: 700px;
+        background-color: rgb(104, 189, 34);
+      }
+      .player-container {
+        border: 1px solid #000;
+        width: 300px;
+        height: 200px;
+        background-color: aqua;
+      }
+      #up-player, #down-player {
+        display: flex;
+        justify-content: space-between;
+      }
+      #deck {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 150px;
+        height: 200px;
+        background-color: aquamarine;
+
+      }
+    </style>
+  </head>
+  <body>
+    <div id="game-container">
+      <!-- 2인용 버전, 다인용 버전(3~6인) -->
+      <div id="up-player">
+        <div id="player1" class="player-container">
+          <span>player1</span>
+        </div>
+        <div id="player2" class="player-container">
+          <span>player2</span>
+        </div>
+        <div id="player3" class="player-container">
+          <span>player3</span>
+        </div>
+      </div>
+      <div id="down-player">
+        <div id="player4" class="player-container">
+          <span>player4</span>
+        </div>
+        <div id="player5" class="player-container">
+          <span>player5</span>
+        </div>
+        <div id="player6" class="player-container">
+          <span>player6</span>
+        </div>
+      </div>
+      <div id="deck"></div>
+    </div>
+  </body>
+</html>
