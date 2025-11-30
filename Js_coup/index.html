@@ -18,6 +18,7 @@
         height: 100vh;
       }
       #game-container {
+        padding: 10px;
         display: flex;
         position: relative;
         flex-direction: column;
@@ -120,7 +121,6 @@
       <div id="player-select-box">플레이어 선택 창</div>
       <div id="game-text-area">text area</div>
     </div>
-
   </body>
   <script>
     const player1 = document.getElementById("player1");
@@ -129,15 +129,28 @@
     const player4 = document.getElementById("player4");
     const player5 = document.getElementById("player5");
     const player6 = document.getElementById("player6");
-
-    const button = document.getElementById("game-start-button");
+    const text_area = document.getElementById("game-text-area");
+    const game_start_button = document.getElementById("game-start-button");
     const player_containers =
       document.getElementsByClassName("player-container");
     const deck = document.getElementById("deck");
     const player_select_box = document.getElementById("player-select-box");
 
-
+    //0: not_ready 1: ready
+    let players_ready = [0, 0, 0, 0, 0, 0];
+    let player_count = 0;
+    let current_turn = 1;
+    let players_coin = [2,2,2,2,2,2];
     // 메인 선택 UI
+
+    //player 선택 메뉴 매핑
+    //코인1개 받기 : 1
+    //코인2개 받기 : 2
+    //공작 능력 : 3
+    //대사 능력 : 4
+    //사령관 능력 : 5
+    //암살자 능력 : 6
+    //쿠 일으키기 : 7
     function renderMainSelect() {
       player_select_box.innerHTML = `
     <button data-btn="coin1">코인 1개 받기</button>
@@ -157,8 +170,9 @@
     <button data-btn="back">뒤로 가기</button>
   `;
     }
-    button.addEventListener("click", () => {
-      button.innerHTML = "";
+    game_start_button.addEventListener("click", () => {
+      game();
+      game_start_button.innerHTML = "";
       deck.innerHTML = "<img src='./src/images/back.PNG'/>";
       renderMainSelect();
     });
@@ -176,8 +190,32 @@
       if (type === "back") {
         renderMainSelect();
       }
-      
+
       console.log("버튼 클릭:", type);
     });
+    function waitForClick(element) {
+      return new Promise((resolve) => {
+        element.addEventListener("click", function handler() {
+          element.removeEventListener("click", handler);
+          resolve(); // 클릭되면 Promise 완료
+        });
+      });
+    }
+    //Game main 함수
+    async function game() {
+      text_area.innerHTML = `
+        지금 부터 보드게임 coup을 시작하겠습니다! <br>
+        플레이어 수 : ${player_count}명
+      `;
+      setTimeout(() => {
+        text_area.innerHTML = `
+        현재 플레이어 ${current_turn}턴 입니다. <br>
+        옵션을 선택해주시기 바랍니다.
+      `;
+      }, 3000);
+      // 클릭할 때까지 대기 (코드 멈춘 것처럼 보임)
+      await waitForClick(player_select_box);
+      text_area.innerHTML = `플레이어 선택`
+    }
   </script>
 </html>
