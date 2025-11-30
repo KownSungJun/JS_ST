@@ -23,8 +23,8 @@
         flex-direction: column;
         justify-content: space-between;
         border: 1px solid #000;
-        width: 1000px;
-        height: 700px;
+        width: 1800px;
+        height: 900px;
         background-color: rgb(104, 189, 34);
       }
       .player-container {
@@ -62,8 +62,30 @@
         top: 50%;
         left: 20%;
         transform: translate(-50%, -50%);
-        width: 300px;
-        height: 200px;
+        width: 600px;
+        height: 300px;
+      }
+      #player-select-box button img {
+        width: 100px;
+        object-fit: cover;
+      }
+      #player-select-box button {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin-left: 10px;
+        text-align: center;
+        flex-direction: column;
+      }
+      #game-text-area {
+        position: absolute;
+        background-color: #aaa;
+        padding: 10px;
+        top: 50%;
+        left: 80%;
+        transform: translate(-50%, -50%);
+        width: 600px;
+        height: 300px;
       }
     </style>
   </head>
@@ -96,46 +118,66 @@
         <button id="game-start-button">Game Start</button>
       </div>
       <div id="player-select-box">플레이어 선택 창</div>
+      <div id="game-text-area">text area</div>
     </div>
+
   </body>
   <script>
+    const player1 = document.getElementById("player1");
+    const player2 = document.getElementById("player2");
+    const player3 = document.getElementById("player3");
+    const player4 = document.getElementById("player4");
+    const player5 = document.getElementById("player5");
+    const player6 = document.getElementById("player6");
+
     const button = document.getElementById("game-start-button");
     const player_containers =
       document.getElementsByClassName("player-container");
     const deck = document.getElementById("deck");
     const player_select_box = document.getElementById("player-select-box");
 
+
+    // 메인 선택 UI
+    function renderMainSelect() {
+      player_select_box.innerHTML = `
+    <button data-btn="coin1">코인 1개 받기</button>
+    <button data-btn="coin2">코인 2개 받기</button>
+    <button data-btn="ability">캐릭터 능력 사용</button>
+    <button data-btn="coup">쿠 일으키기</button>
+  `;
+    }
+
+    // 능력 선택 UI
+    function renderAbilitySelect() {
+      player_select_box.innerHTML = `
+    <button data-btn="duke"><img src="./src/images/공작.PNG"/>공작</button>
+    <button data-btn="ambassador"><img src="./src/images/대사.PNG"/>대사</button>
+    <button data-btn="assassin"><img src="./src/images/암살자.PNG"/>암살자</button>
+    <button data-btn="captain"><img src="./src/images/사령관.PNG"/>사령관</button>
+    <button data-btn="back">뒤로 가기</button>
+  `;
+    }
     button.addEventListener("click", () => {
-      // button.style.display = "none";
       button.innerHTML = "";
       deck.innerHTML = "<img src='./src/images/back.PNG'/>";
-      player_select_box.innerHTML = `
-        <button>코인 1개 받기</button>
-        <button>코인 2개 받기</button>
-        <button id="ch_ablilty">캐릭터 능력 사용</button>
-        <button>쿠 일으키기</button>
-      `;
-      const ch_button = document.getElementById("ch_ablilty");
-      ch_button.addEventListener("click", () => {
-        player_select_box.innerHTML = "";
-        player_select_box.innerHTML = `
-        <button>공작</button>
-        <button>대사</button>
-        <button>암살자</button>
-        <button>사령관</button>
-        <button id="back">뒤로 가기</button>
-      `;
-      const back_button = document.getElementById('back');
-      back_button.addEventListener("click", () => {
-        player_select_box.innerHTML = `
-          <button>코인 1개 받기</button>
-          <button>코인 2개 받기</button>
-          <button id="ch_ablilty">캐릭터 능력 사용</button>
-          <button>쿠 일으키기</button>
-        `;
-        
-      })
-      });
+      renderMainSelect();
+    });
+    // 📌 이벤트 위임: 부모 박스에 단 한 번만 이벤트 등록
+    player_select_box.addEventListener("click", (e) => {
+      const target = e.target;
+      if (target.tagName !== "BUTTON") return;
+
+      const type = target.dataset.btn;
+
+      if (type === "ability") {
+        renderAbilitySelect();
+      }
+
+      if (type === "back") {
+        renderMainSelect();
+      }
+      
+      console.log("버튼 클릭:", type);
     });
   </script>
 </html>
