@@ -19,7 +19,7 @@ console.log(3+3) //3
 이때 Stack에 있는 코드는 한 줄씩 실행된다
 
 그리고 setTimeout()이라는 따로 저장한다
-Ajax 요청 코드, 이벤트 리스너, setTimeout 등 따로 대기 시키는 공간에 저장한다
+Ajax 요청 코드, 이벤트 리스너, setTimeout 등 따로 대기 시키는 공간 Queue에 저장한다
 
 Queue라는 저장 공간에 오래걸리는 코드를 두고 필요할 때 Stack에 둔다 이때! Stack이 비어있을 때만 Queue에 있는 코드를 올린다
 
@@ -31,6 +31,163 @@ js는 싱글 스레드 기반이 언어라 비동기적인 행동에 제약이 �
 그래서 js를 할때 주의할 사항이다
 1. Stack이 바쁘게 하지 마라
 2. Queue도 바쁘게 하지 마라
+# JS 함수 호이스팅(Hoisting)
+JS에서 호이스팅(Hoisting)은 변수 선언과 함수 선언을 코드의 맨 위로 끌어올려지는 현상을 일컫는다. <br>
+그래서 개발자가 어느 라인 위치에 코드를 선언해도, 실행 되기전에 코드가 최상단으로 끌어올려지고 실행되게 된다.
+
+이러한 호이스팅이 발생하는 원인은 JS의 변수 생성(Instantiation)과 초기화(Intitalization)의 작업이 분리되어 진행되기 때문이다.
+
+```js
+console.log(a()) // 'a'
+console.log(b()) // Uncaught TypeError: b is not a function
+console.log(c()) // Uncaught TypeError: c is not a function
+
+function a() {
+    return 'a'
+}
+
+var b = function bb() {
+    return 'bb'
+}
+
+var c = function() {
+    return 'c'
+}
+```
+
+위에 보이는 코드에서 `a()` 부터 실행 오류가 떠야 하지만 a는 출력된다 <br>
+왜냐하면 호이스팅에 의해 실제 JS 컴파일은 이러한 방식으로 이루어 지기 때문이다.
+
+```js
+function a() {
+    return 'a'
+}
+
+var b;
+var c; //함수 선언은 위로 강제로 끌어져 올라온다.(호이스팅)
+
+console.log(a()) // 'a'
+console.log(b()) // Uncaught TypeError: b is not a function
+console.log(c()) // Uncaught TypeError: c is not a function
+
+var b = function bb() {
+    return 'bb'
+}
+
+var c = function() {
+    return 'c'
+}
+```
+
+이와 같이 함수 선언과 변수 선언이 위로 호이스팅 되어서 정의가 되었기 때문에 a만 실행이 되었던 것이다. <br>
+그런데 `b()`, `c()`는 아직 변수 b와 c 안에 넣어지지 않은 형태이기에, 함수 선언문이 아니라서 b와 c는 그냥 변수로 취급 때문에 실행 오류가 뜨는 것이다.
+
+## 함수의 호이스팅 방법
+JS 함수를 정의하는 문법으로 함수 표현식과 함수 선언식이 있다.
+```js
+//함수 선언식
+function add(x,y) {
+    return x+y
+}
+
+//함수 표현식
+const add = function(x,y) {
+    return x+y;
+}
+```
+
+둘은 결국 함수를 만드는데 기본적인 동일한 기능을 수행하지만, 함수 표현식은 함수를 변수에 할당함으로 유연성이 높다. 그리고 <b>호이스팅이 강제적으로 되지 않아</b>개발자로 하여금 혼동을 주지 않게 된다
+
+### 함수 표현식 권장 이유
+함수 선언식의 사용 예제를 보자
+```js
+console.log(add(2,3))
+function add(x,y) {
+    return x+y;
+}
+
+console.log(add(3,4))
+```
+
+`add(2,3)`은 아직 `function add()` 함수가 정의되지 않았음에도 `add()` 함수 호출하는 것이 가능하다. 왜냐하면 코드 해석 단계에서 호이스팅이 일어나 `function add()`가 상단으로 올려졌기 때문이다
+
+https://inpa.tistory.com/entry/JS-%F0%9F%93%9A-%EC%8A%A4%EC%BD%94%ED%94%84-%ED%95%A8%EC%88%98-%ED%98%B8%EC%9D%B4%EC%8A%A4%ED%8C%85
+https://inpa.tistory.com/entry/MarkDown-%F0%9F%93%9A-%EB%A7%88%ED%81%AC%EB%8B%A4%EC%9A%B4-%EB%AC%B8%EB%B2%95-%F0%9F%92%AF-%EC%A0%95%EB%A6%AC
+https://inpa.tistory.com/entry/JS-%F0%9F%93%9A-%EB%B9%84%EB%8F%99%EA%B8%B0%EC%B2%98%EB%A6%AC-async-await
+https://inpa.tistory.com/entry/JS-%F0%9F%93%9A-%EC%9D%B4%EB%B2%A4%ED%8A%B8-%F0%9F%92%AF-%EC%B4%9D-%EC%A0%95%EB%A6%AC
+https://inpa.tistory.com/entry/%F0%9F%94%84-%EC%9E%90%EB%B0%94%EC%8A%A4%ED%81%AC%EB%A6%BD%ED%8A%B8-%EC%9D%B4%EB%B2%A4%ED%8A%B8-%EB%A3%A8%ED%94%84-%EA%B5%AC%EC%A1%B0-%EB%8F%99%EC%9E%91-%EC%9B%90%EB%A6%AC
+https://inpa.tistory.com/entry/%F0%9F%8C%90-js-async
+https://inpa.tistory.com/entry/JS-%F0%9F%93%9A-%EC%9E%90%EB%B0%94%EC%8A%A4%ED%81%AC%EB%A6%BD%ED%8A%B8-%EC%BD%9C%EB%B0%B1-%ED%95%A8%EC%88%98
+https://inpa.tistory.com/entry/JS-%F0%9F%93%9A-%EB%B0%B0%EC%97%B4-%EA%B3%A0%EC%B0%A8%ED%95%A8%EC%88%98-%EC%B4%9D%EC%A0%95%EB%A6%AC-%F0%9F%92%AF-mapfilterfindreducesortsomeevery?category=889099
+# JS 비동기 처리 3가지 방식
+JS는 싱글 스레드 프로그래밍 언어기 때문에 멀티 작업(Thread 작업)을 하기 위해선 비동기 처리 방식이 자주 쓰인다. 비동기 처리는 백그라운드로 동작되기 때문에 그 결과가 언제 반환될지 알 수 없어, 완료되면 결과를 받아 처리하기 위해 사용되는 대표적인 `콜백 함수(Callback)`와 이를 개선한 `프로미스 객체(Promise)`가 있다 
+
+하지만 서비스 규모가 커질 수록 코드가 복잡해짐에 따라 코드를 중첩해서 사용하다 가독성이 떨어지고 유지보수가 어려워지는 상황이 발생하게 되는데, 이를 `Callback Hell`, `Promise Hell` 이라고 부른다.
+```js
+// Callback Hell
+getData(function (x) {
+
+})
+```
+
+
+
+# JS 배열 고차 함수(Higher-Order Function)
+## 고차 함수
+고차 함수란, 함수를 파라미터로 전달받거나 연산의 결과로 반환해주는 메서드를 일컫는다.
+<br>
+요즘 자주 거론되는 `함수형 프로그래밍`의 핵심이기도 하며, JS를 `함수형 프로그래밍`에 알맞는 언어로 만들어주는 특성이기도 하다
+
+> <b>함수형 프로그래밍</b><br>
+함수를 다른 함수의 파라미터로 넘길 수도 있고 반환(return)값으로 함수를 받을 수도 있는 프로그래밍 형태를 말한다.
+
+이 파트에는 JS에서 광범위 하게 사용되는 배열의 고차함수를 총정리할 것이다. <br>
+똑같이 배열을 순회한다는 점에서 이들은 모두 비슷하나 리턴하는 결과는 각각 다르니 이를 유심히 보며 익하기 바란다
+
+## .forEach()
+- for문을 대체하는 고차 함수
+- 반복문을 추상화해 구현된 메서드이고 내부에서 주어진 배열을 순회하면서 연산 수행
+```js
+arr.forEach((item, index, thisArr) => {});
+/*
+    item : 배열 요소값
+    index : 배열 인덱스
+    thisArr : 참조된 배열
+
+    return 값 : 없음
+*/
+
+//예시
+const numberArr = [1,2,3,4,5];
+let total = 0;
+
+numberArr.forEach((item) => {
+    total += item;
+})
+
+console.log(total)
+```
+
+
+## .map()
+- `forEach` 같이 순회하면서, 콜백함수에서의 실행결과를 리턴한 값으로 이루어진 배열을 만들어 반환
+
+> 콜백(Callback) 함수
+매개변수로 함수 객체를 전달해 호출 함수 내에서 매개변수 함수를 실행하는 것
+```js
+function sayHello(name, callback) {
+    const words = '안녕 내 이름은 '+name+'이야.';
+    callback(words); //매개변수의 함수(콜백 함수) 실행
+}
+
+sayHello("성준", function printing(name) {
+    console.log(name); //안녕 내 이름은 성준이야
+})
+
+```
+
+> 콜백 함수 주의점
+this를 사용한 콜백 함수
 
 ## Thread
 ## Event
