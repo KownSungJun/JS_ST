@@ -119,6 +119,8 @@ https://inpa.tistory.com/entry/%F0%9F%94%84-%EC%9E%90%EB%B0%94%EC%8A%A4%ED%81%AC
 https://inpa.tistory.com/entry/%F0%9F%8C%90-js-async
 https://inpa.tistory.com/entry/JS-%F0%9F%93%9A-%EC%9E%90%EB%B0%94%EC%8A%A4%ED%81%AC%EB%A6%BD%ED%8A%B8-%EC%BD%9C%EB%B0%B1-%ED%95%A8%EC%88%98
 https://inpa.tistory.com/entry/JS-%F0%9F%93%9A-%EB%B0%B0%EC%97%B4-%EA%B3%A0%EC%B0%A8%ED%95%A8%EC%88%98-%EC%B4%9D%EC%A0%95%EB%A6%AC-%F0%9F%92%AF-mapfilterfindreducesortsomeevery?category=889099
+
+Anki 사용법 알아보기
 # JS 비동기 처리 3가지 방식
 JS는 싱글 스레드 프로그래밍 언어기 때문에 멀티 작업(Thread 작업)을 하기 위해선 비동기 처리 방식이 자주 쓰인다. 비동기 처리는 백그라운드로 동작되기 때문에 그 결과가 언제 반환될지 알 수 없어, 완료되면 결과를 받아 처리하기 위해 사용되는 대표적인 `콜백 함수(Callback)`와 이를 개선한 `프로미스 객체(Promise)`가 있다 
 
