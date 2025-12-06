@@ -1,0 +1,631 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Worker War - RTS (자동 채집 / 충돌 회피 / 미니맵 / 전투)</title>
+<style>
+  :root{
+    --bg:#07121a; --panel:rgba(255,255,255,0.03); --accent:#1f8feb;
+    --ui:'#e6eef6';
+  }
+  *{box-sizing:border-box}
+  body{margin:0;min-height:100vh;display:flex;align-items:flex-start;justify-content:center;background:linear-gradient(180deg,#07101a,#081827);color:#e6eef6;font-family:Noto Sans KR,Inter,system-ui,Arial}
+  .wrap{width:1100px;max-width:98vw;padding:16px}
+  header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+  h1{margin:0;font-size:18px}
+  .topbar{display:flex;gap:10px;align-items:center}
+  .panel{background:var(--panel);padding:8px 12px;border-radius:10px;min-width:110px}
+  .game{display:grid;grid-template-columns:360px 1fr 200px;gap:12px}
+  .left{display:flex;flex-direction:column;gap:10px}
+  button{background:var(--accent);border:0;color:white;padding:8px 12px;border-radius:8px;cursor:pointer}
+  canvas#field{width:100%;height:560px;border-radius:10px;background:#071922;display:block}
+  .log{height:160px;overflow:auto;padding:8px;border-radius:8px;background:rgba(0,0,0,0.2);font-size:13px}
+  .mini{position:relative;width:180px;height:180px;border-radius:6px;background:#021217;overflow:hidden;border:1px solid rgba(255,255,255,0.04)}
+  .right{display:flex;flex-direction:column;gap:10px}
+  .info{font-size:14px}
+  .bar{height:10px;background:#12202a;border-radius:6px;overflow:hidden}
+  .bar>i{display:block;height:100%;background:linear-gradient(90deg,var(--accent),#1bc0ff)}
+  @media(max-width:980px){ .game{grid-template-columns:1fr} .right{order:3} }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <h1>Worker War — RTS Prototype</h1>
+      <div class="topbar">
+        <div class="panel">돈: <strong id="money">100</strong></div>
+        <div class="panel">라운드: <strong id="round">1</strong></div>
+        <div class="panel">목숨: <strong id="lives">3</strong></div>
+      </div>
+    </header>
+
+    <div class="game">
+      <div class="left">
+        <div class="panel">
+          <div style="display:flex;gap:8px;align-items:center">
+            <button id="hireBtn">일꾼 고용 (30)</button>
+            <button id="soldierBtn">병사 생산 (25)</button>
+            <button id="spawnEnemyBtn" style="background:#c04">적 스폰</button>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div style="display:flex;justify-content:space-between"><div>일꾼:</div><div id="workersCount">0</div></div>
+          <div style="display:flex;justify-content:space-between"><div>병력:</div><div id="armyCount">0</div></div>
+          <div style="display:flex;justify-content:space-between"><div>적:</div><div id="enemyCount">0</div></div>
+        </div>
+
+        <div class="panel log" id="log"></div>
+      </div>
+
+      <div>
+        <canvas id="field" width="640" height="560"></canvas>
+      </div>
+
+      <div class="right">
+        <div class="panel" style="padding:10px">
+          <div style="display:flex;justify-content:space-between;align-items:center"><div>미니맵</div><div style="font-size:12px;color:#a8b3c7">파란=기지/노란=아군/빨강=적/초록=자원</div></div>
+          <div style="height:8px"></div>
+          <div class="mini" id="minimap"></div>
+        </div>
+
+        <div class="panel">
+          <div class="info">조작법:</div>
+          <ul style="margin:6px 0 0 16px;padding:0;font-size:13px">
+            <li>마우스 드래그: 유닛 선택 박스</li>
+            <li>드래그 후 클릭(해제): 선택된 유닛을 클릭한 타일로 이동</li>
+            <li>일꾼은 자동으로 자원을 찾아 채집</li>
+          </ul>
+        </div>
+
+        <div class="panel">
+          <div style="display:flex;justify-content:space-between"><div>병력 막대</div><div id="armyBarVal">0%</div></div>
+          <div class="bar" style="margin-top:6px"><i id="armyBar" style="width:0%"></i></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+<script>
+/* ========== 설정 ========== */
+const TILE = 32;
+const MAP_COLS = 20;
+const MAP_ROWS = 17;
+const canvas = document.getElementById('field');
+const ctx = canvas.getContext('2d');
+const minimapEl = document.getElementById('minimap');
+const mctx = minimapEl.getContext ? minimapEl.getContext('2d') : null;
+
+let money = 100;
+let round = 1;
+let lives = 3;
+
+const moneyEl = document.getElementById('money');
+const roundEl = document.getElementById('round');
+const livesEl = document.getElementById('lives');
+const workersCountEl = document.getElementById('workersCount');
+const armyCountEl = document.getElementById('armyCount');
+const enemyCountEl = document.getElementById('enemyCount');
+const logEl = document.getElementById('log');
+const armyBar = document.getElementById('armyBar');
+const armyBarVal = document.getElementById('armyBarVal');
+
+function log(t){ const d = document.createElement('div'); d.textContent = `[${new Date().toLocaleTimeString()}] ${t}`; logEl.prepend(d); }
+
+/* ========== 맵 / 기지 / 자원 ========== */
+const baseTile = { x:2, y: Math.floor(MAP_ROWS/2) };
+let resources = [];
+function placeResources(){
+  resources = [
+    {x: MAP_COLS-4, y:3, amount:200},
+    {x: MAP_COLS-5, y: Math.floor(MAP_ROWS/2), amount:260},
+    {x: MAP_COLS-4, y: MAP_ROWS-4, amount:220}
+  ];
+}
+placeResources();
+
+/* ========== 유닛 데이터 구조 ========== */
+/*
+unit = {
+  id, type: 'worker'|'soldier'|'enemy',
+  x,y (tile-based float), tx,ty target tile,
+  hp, maxHp, atk, atkCooldown, cooldownTimer,
+  speed (tiles/sec), state, carry
+}
+*/
+let units = [];
+let nextId = 1;
+let selectedUnits = [];
+
+const UNIT_SIZES = { worker:0.6, soldier:0.8, enemy:0.8 }; // used for separation radius
+
+function spawnWorker(){
+  if (money < 30) { log('돈 부족: 일꾼 고용 실패'); return; }
+  money -= 30; updateUI();
+  const u = {
+    id: nextId++,
+    type:'worker',
+    x: baseTile.x + 0.5, y: baseTile.y + 0.5,
+    tx: baseTile.x + 0.5, ty: baseTile.y + 0.5,
+    hp:10, maxHp:10, atk:1, atkCooldown:0.8, cooldownTimer:0,
+    speed: 2.2, state:'idle',
+    carry:0
+  };
+  units.push(u);
+  log('일꾼 고용: id ' + u.id);
+}
+
+function spawnSoldier(){
+  if (money < 25) { log('돈 부족: 병사 생산 실패'); return; }
+  money -= 25; updateUI();
+  const u = {
+    id: nextId++,
+    type:'soldier',
+    x: baseTile.x + 0.5, y: baseTile.y + 0.5,
+    tx: baseTile.x + 0.5, ty: baseTile.y + 0.5,
+    hp:25, maxHp:25, atk:6, atkCooldown:1.0, cooldownTimer:0,
+    speed: 2.1, state:'idle'
+  };
+  units.push(u);
+  log('병사 생산: id ' + u.id);
+}
+
+function spawnEnemyAt(xTile, yTile){
+  const u = {
+    id: nextId++,
+    type:'enemy',
+    x: xTile + 0.5, y: yTile + 0.5,
+    tx: xTile + 0.5, ty: yTile + 0.5,
+    hp:20 + Math.floor(Math.random()*10), maxHp:20, atk:5 + Math.random()*4, atkCooldown:1.1, cooldownTimer:0,
+    speed: 1.4, state:'idle'
+  };
+  units.push(u);
+  log('적 스폰: id ' + u.id);
+}
+
+/* ========== 자동행동: 일꾼 자원 채집 ========== */
+function findNearestResourceFor(x,y){
+  let best = null, bd = 1e9;
+  for(const r of resources){
+    if (r.amount <= 0) continue;
+    const rx = r.x + 0.5, ry = r.y + 0.5;
+    const d = Math.hypot(rx - x, ry - y);
+    if (d < bd){ bd = d; best = r; }
+  }
+  return best;
+}
+
+/* ========== 충돌 회피(간단한 분리) ========== */
+function applySeparation(u, nearby){
+  // nearby: list of units
+  let sx = 0, sy = 0, count = 0;
+  const myR = UNIT_SIZES[u.type] * 0.5;
+  for(const o of nearby){
+    if(o === u) continue;
+    const dx = u.x - o.x, dy = u.y - o.y;
+    const d = Math.hypot(dx,dy) || 0.001;
+    const minDist = (UNIT_SIZES[u.type] + UNIT_SIZES[o.type]) * 0.5;
+    if (d < minDist && d > 0){
+      const push = (minDist - d) / minDist;
+      sx += (dx/d) * push;
+      sy += (dy/d) * push;
+      count++;
+    }
+  }
+  if(count>0){
+    u.x += (sx/count) * 0.08; // small nudge (tiles)
+    u.y += (sy/count) * 0.08;
+  }
+}
+
+/* ========== 전투: 근접 공격 ========== */
+function findNearestEnemyForUnit(u){
+  let best=null, bd=1e9;
+  for(const o of units){
+    if(o.type === u.type) continue;
+    // ally vs enemy: workers/soldiers are allied; enemies are enemy
+    // define opposing: u.type != o.type and one is 'enemy'
+    if( (u.type === 'enemy' && o.type !== 'enemy') || (u.type !== 'enemy' && o.type === 'enemy') ){
+      const d = Math.hypot(o.x - u.x, o.y - u.y);
+      if(d < bd){ bd = d; best = o; }
+    }
+  }
+  return best;
+}
+
+/* ========== 유닛 업데이트 ========== */
+function updateUnit(u, dt){
+  // cooldown
+  if(u.cooldownTimer > 0) u.cooldownTimer -= dt;
+
+  // separation neighbors
+  applySeparation(u, units);
+
+  if(u.type === 'worker'){
+    // auto gather behavior if idle/not commanded
+    if(u.state === 'idle' || u.state === 'toResource' || u.state === 'gathering' || u.state === 'returning'){
+      // if worker was commanded by player, tx/ty differs: we check if player assigned (u._playerAssigned)
+      if(u._playerAssigned){
+        // follow tx/ty simple move
+        moveToTarget(u, dt);
+        return;
+      }
+      // else automatic gather loop
+      if(u.state === 'idle'){
+        const r = findNearestResourceFor(u.x, u.y);
+        if(r){ u.targetRes = r; u.tx = r.x + 0.5; u.ty = r.y + 0.5; u.state = 'toResource'; }
+        else { /* nothing */ }
+      } else if(u.state === 'toResource'){
+        // move towards resource
+        const r = u.targetRes;
+        if(!r || r.amount <= 0){
+          u.state = 'idle'; u.targetRes = null; return;
+        }
+        // if reached
+        const d = Math.hypot((r.x+0.5)-u.x, (r.y+0.5)-u.y);
+        if(d < 0.55){ u.state = 'gathering'; u.gatherTimer = 0; }
+        else moveToTarget(u, dt);
+      } else if(u.state === 'gathering'){
+        u.gatherTimer += dt;
+        const gatherPerSec = 8; // tiles per sec -> resource units per sec
+        if(u.gatherTimer >= 0.6){
+          const take = Math.min(10, u.targetRes.amount);
+          u.carry = (u.carry||0) + take;
+          u.targetRes.amount -= take;
+          u.gatherTimer = 0;
+          log(`일꾼 ${u.id} 채집 +${take}`);
+          if(u.carry >= 30 || u.targetRes.amount <= 0){
+            // return to base
+            u.state = 'returning';
+            u.tx = baseTile.x + 0.5; u.ty = baseTile.y + 0.5;
+          }
+        }
+      } else if(u.state === 'returning'){
+        const d = Math.hypot((baseTile.x+0.5)-u.x, (baseTile.y+0.5)-u.y);
+        moveToTarget(u, dt);
+        if(d < 0.7){
+          const deposit = Math.floor(u.carry || 0);
+          if(deposit>0){ money += deposit; log(`일꾼 ${u.id} 입금 +${deposit}`); u.carry = 0; updateUI(); }
+          u.state = 'idle'; u.targetRes = null;
+        }
+      }
+      return;
+    }
+  }
+
+  // soldier/enemy AI (if not player-assigned)
+  if(!u._playerAssigned){
+    if(u.type === 'soldier'){
+      // seek nearest enemy if nearby
+      const target = findNearestEnemyForUnit(u);
+      if(target && Math.hypot(target.x-u.x,target.y-u.y) < 6){
+        u._aiTarget = target;
+        // move towards enemy
+        u.tx = target.x; u.ty = target.y;
+        // if in attack range
+        if(Math.hypot(target.x-u.x,target.y-u.y) <= 0.9){
+          attemptAttack(u, target);
+          return;
+        }
+        moveToTarget(u, dt);
+      } else {
+        // idle guard near base
+        if(Math.hypot((baseTile.x+0.5)-u.x,(baseTile.y+0.5)-u.y) > 4){
+          u.tx = baseTile.x+0.5; u.ty = baseTile.y+0.5; moveToTarget(u, dt);
+        }
+      }
+    } else if(u.type === 'enemy'){
+      // enemies march toward base
+      u.tx = baseTile.x+0.5; u.ty = baseTile.y+0.5;
+      const nearestAlly = findNearestEnemyForUnit(u); // actually finds opposite
+      if(nearestAlly && Math.hypot(nearestAlly.x-u.x, nearestAlly.y-u.y) < 6){
+        u.tx = nearestAlly.x; u.ty = nearestAlly.y;
+        if(Math.hypot(nearestAlly.x-u.x, nearestAlly.y-u.y) <= 0.9){
+          attemptAttack(u, nearestAlly);
+          return;
+        }
+      }
+      moveToTarget(u, dt);
+    }
+  } else {
+    // player-assigned unit: just move to tx/ty and if enemy nearby, attack
+    const nearestEnemy = findNearestEnemyForUnit(u);
+    if(nearestEnemy && Math.hypot(nearestEnemy.x-u.x,nearestEnemy.y-u.y) <= 0.9){
+      attemptAttack(u, nearestEnemy);
+      return;
+    }
+    moveToTarget(u, dt);
+  }
+}
+
+/* move unit toward its tx,ty with speed tiles/sec */
+function moveToTarget(u, dt){
+  const dx = u.tx - u.x, dy = u.ty - u.y;
+  const d = Math.hypot(dx,dy);
+  if(d < 0.05) return;
+  const maxStep = u.speed * dt;
+  const nx = (dx/d) * Math.min(maxStep, d);
+  const ny = (dy/d) * Math.min(maxStep, d);
+  u.x += nx; u.y += ny;
+}
+
+/* attempt to attack target if cooldown ready */
+function attemptAttack(u, target){
+  if(!target) return;
+  if(u.cooldownTimer > 0) return;
+  // melee instant damage
+  const damage = u.atk || 2;
+  target.hp -= damage;
+  u.cooldownTimer = u.atkCooldown || 1.0;
+  log(`${u.type} ${u.id}이(가) ${target.type} ${target.id}에 ${Math.floor(damage)} 데미지`);
+  if(target.hp <= 0){
+    log(`${target.type} ${target.id} 사망`);
+    // on death reward if enemy
+    if(target.type === 'enemy'){
+      money += Math.floor(8 + Math.random()*12);
+      updateUI();
+    }
+    // remove target
+    units = units.filter(x => x !== target);
+  }
+}
+
+/* ========== 입력: 선택 박스 & 이동 명령 ========== */
+let dragging = false, dragStart = null, dragCurrent = null;
+
+canvas.addEventListener('mousedown', (e)=>{
+  const t = mouseToTile(e);
+  dragging = true; dragStart = t; dragCurrent = t;
+});
+
+canvas.addEventListener('mousemove', (e)=>{
+  if(!dragging) return;
+  dragCurrent = mouseToTile(e);
+});
+
+canvas.addEventListener('mouseup', (e)=>{
+  const t = mouseToTile(e);
+  if(dragging && dragStart && dragCurrent){
+    // select units inside tile rect
+    const x1 = Math.min(dragStart.x, dragCurrent.x) + 0;
+    const y1 = Math.min(dragStart.y, dragCurrent.y) + 0;
+    const x2 = Math.max(dragStart.x, dragCurrent.x) + 1;
+    const y2 = Math.max(dragStart.y, dragCurrent.y) + 1;
+    selectedUnits = [];
+    for(const u of units){
+      if(u.x >= x1 && u.x < x2 && u.y >= y1 && u.y < y2){
+        selectedUnits.push(u);
+      }
+    }
+    // clear player-assignment flag for those not selected
+    for(const u of units) u._highlight = selectedUnits.includes(u) ? true : false;
+  }
+  dragging = false; dragStart = null; dragCurrent = null;
+
+  // If any units selected, treat this click as move target (get clicked tile)
+  if(selectedUnits.length > 0){
+    const clickTile = t;
+    // assign tx/ty for selected
+    for(const u of selectedUnits){
+      u.tx = clickTile.x + 0.5; u.ty = clickTile.y + 0.5;
+      u._playerAssigned = true; // player's direct command
+      u.state = 'moving';
+    }
+  }
+});
+
+/* get tile indices from mouse event */
+function mouseToTile(e){
+  const rect = canvas.getBoundingClientRect();
+  const mx = e.clientX - rect.left, my = e.clientY - rect.top;
+  const tx = Math.floor((mx / rect.width) * MAP_COLS);
+  const ty = Math.floor((my / rect.height) * MAP_ROWS);
+  return { x: Math.max(0, Math.min(MAP_COLS-1, tx)), y: Math.max(0, Math.min(MAP_ROWS-1, ty)) };
+}
+
+/* ========== 메인 루프 ========== */
+function updateAll(dt){
+  // update each unit
+  for(const u of [...units]){ // copy safe
+    updateUnit(u, dt);
+  }
+  // worker automatic respawn: if resources empty -> new resources and round++
+  const allEmpty = resources.every(r => r.amount <= 0);
+  if(allEmpty){
+    round++; placeResources(); log('자원 모두 고갈 -> 새로운 자원 배치 (라운드 '+round+')');
+  }
+  // if enemy reaches base => subtract life
+  for(const e of units.filter(u=>u.type==='enemy')){
+    const d = Math.hypot((baseTile.x+0.5)-e.x, (baseTile.y+0.5)-e.y);
+    if(d < 0.9){
+      // damage base and remove enemy
+      lives -= 1;
+      log('적이 기지에 도달함! 목숨 -1');
+      units = units.filter(u => u !== e);
+      updateUI();
+    }
+  }
+  // auto deselect dead selections
+  selectedUnits = selectedUnits.filter(u => units.includes(u));
+}
+
+let last = performance.now();
+function loop(now){
+  const dt = (now - last)/1000; last = now;
+  updateAll(dt);
+  render();
+  requestAnimationFrame(loop);
+}
+
+/* ========== 렌더 / 미니맵 ========== */
+function render(){
+  // canvas pixel size to draw tiles nicely (stretch tiles to fit canvas)
+  const cw = canvas.clientWidth, ch = canvas.clientHeight;
+  ctx.clearRect(0,0,cw,ch);
+  // tile size in pixels
+  const px = cw / MAP_COLS, py = ch / MAP_ROWS;
+
+  // draw tiles
+  for(let y=0;y<MAP_ROWS;y++){
+    for(let x=0;x<MAP_COLS;x++){
+      ctx.fillStyle = ((x+y)%2===0)?'#08313a':'#072b32';
+      ctx.fillRect(x*px, y*py, px, py);
+      ctx.strokeStyle='rgba(255,255,255,0.02)';
+      ctx.strokeRect(x*px, y*py, px, py);
+    }
+  }
+
+  // draw resources
+  for(const r of resources){
+    const rx = (r.x+0.5)*px, ry = (r.y+0.5)*py;
+    const rad = Math.max(8, Math.min(px*0.8, (r.amount/300) * px * 0.8));
+    ctx.beginPath(); ctx.fillStyle='#4ad37a'; ctx.arc(rx, ry, rad, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle='#001818'; ctx.font = `${Math.max(10,px*0.12)}px sans-serif`; ctx.fillText(Math.floor(r.amount), rx-12, ry+4);
+  }
+
+  // draw base
+  const bcx = (baseTile.x+0.5)*px, bcy = (baseTile.y+0.5)*py;
+  ctx.beginPath(); ctx.fillStyle='#6fb3ff'; ctx.arc(bcx,bcy, Math.min(px,py)*0.9,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle='#01233a'; ctx.font='12px sans-serif'; ctx.fillText('기지', bcx-12, bcy+4);
+
+  // draw units
+  for(const u of units){
+    const ux = u.x * px, uy = u.y * py;
+    const size = (u.type==='worker'?0.6:0.8) * Math.min(px,py);
+    // body
+    let color = '#ffd47a';
+    if(u.type==='soldier') color = '#ffd56b';
+    if(u.type==='enemy') color = '#ff7a7a';
+    ctx.fillStyle = color;
+    ctx.fillRect(ux - size*0.5, uy - size*0.5, size, size);
+
+    // hp bar
+    ctx.fillStyle = 'rgba(0,0,0,0.6)';
+    ctx.fillRect(ux - size*0.5, uy - size*0.6 - 6, size, 4);
+    const hpRatio = Math.max(0, u.hp / u.maxHp);
+    ctx.fillStyle = (hpRatio>0.5? '#4ade80' : (hpRatio>0.2? '#f59e0b' : '#ef4444'));
+    ctx.fillRect(ux - size*0.5, uy - size*0.6 - 6, size * hpRatio, 4);
+
+    // selection highlight
+    if(u._highlight){
+      ctx.strokeStyle='yellow'; ctx.lineWidth=2;
+      ctx.strokeRect(ux - size*0.55, uy - size*0.55, size*1.1, size*1.1);
+    }
+
+    // carry indicator for worker
+    if(u.type==='worker' && u.carry && u.carry>0){
+      ctx.fillStyle='#f2c94c'; ctx.fillRect(ux - size*0.25, uy + size*0.35, Math.max(6, u.carry/2), 6);
+    }
+  }
+
+  // draw selection rectangle
+  if(dragging && dragStart && dragCurrent){
+    const x1 = Math.min(dragStart.x, dragCurrent.x) * px;
+    const y1 = Math.min(dragStart.y, dragCurrent.y) * py;
+    const w = (Math.abs(dragStart.x - dragCurrent.x)+1) * px;
+    const h = (Math.abs(dragStart.y - dragCurrent.y)+1) * py;
+    ctx.strokeStyle = 'rgba(255,255,0,0.9)'; ctx.lineWidth = 2;
+    ctx.strokeRect(x1, y1, w, h);
+  }
+
+  // update minimap
+  if(mctx){
+    const mw = minimapEl.clientWidth, mh = minimapEl.clientHeight;
+    mctx.clearRect(0,0,mw,mh);
+    // background
+    mctx.fillStyle = '#021217'; mctx.fillRect(0,0,mw,mh);
+    // draw base small
+    const sx = (baseTile.x / MAP_COLS) * mw, sy = (baseTile.y / MAP_ROWS) * mh;
+    mctx.fillStyle = '#6fb3ff'; mctx.fillRect(sx-3, sy-3, 6, 6);
+    // resources
+    for(const r of resources){
+      const rx = (r.x / MAP_COLS) * mw, ry = (r.y / MAP_ROWS) * mh;
+      mctx.fillStyle = '#3fe08a'; mctx.fillRect(rx-2, ry-2, 4, 4);
+    }
+    // units
+    for(const u of units){
+      const ux = (u.x / MAP_COLS) * mw, uy = (u.y / MAP_ROWS) * mh;
+      if(u.type==='enemy') mctx.fillStyle = '#ff6b6b';
+      else if(u.type==='soldier') mctx.fillStyle = '#ffd56b';
+      else mctx.fillStyle = '#f6e27a';
+      mctx.fillRect(ux-1.5, uy-1.5, 3, 3);
+    }
+    // border
+    mctx.strokeStyle='rgba(255,255,255,0.04)'; mctx.strokeRect(0,0,mw,mh);
+  }
+
+  // update small stats
+  workersCountEl.textContent = units.filter(u=>u.type==='worker').length;
+  armyCountEl.textContent = units.filter(u=>u.type==='soldier').length;
+  enemyCountEl.textContent = units.filter(u=>u.type==='enemy').length;
+  const pct = Math.round((units.filter(u=>u.type==='soldier').length / Math.max(1, units.filter(u=>u.type==='enemy').length)) * 100);
+  armyBar.style.width = Math.max(0, Math.min(100,pct)) + '%';
+  armyBarVal.textContent = Math.max(0, Math.min(100,pct)) + '%';
+
+  // UI numbers
+  updateUIElements();
+}
+
+/* ========== UI / helper ========== */
+function updateUIElements(){
+  moneyEl.textContent = Math.floor(money);
+  roundEl.textContent = round;
+  livesEl.textContent = lives;
+}
+
+function updateUI(){
+  updateUIElements();
+}
+
+/* ========== event buttons ========== */
+document.getElementById('hireBtn').addEventListener('click', ()=>spawnWorker());
+document.getElementById('soldierBtn').addEventListener('click', ()=>spawnSoldier());
+document.getElementById('spawnEnemyBtn').addEventListener('click', ()=>{
+  // spawn enemy cluster on right side
+  const ex = MAP_COLS - 3;
+  const ey = Math.floor(Math.random()*(MAP_ROWS-4))+2;
+  spawnEnemyAt(ex, ey);
+});
+
+/* ========== helper spawn enemy ========== */
+function spawnEnemyAt(x,y){
+  spawnEnemyAtRef(x,y);
+}
+/* separate to avoid hoist confusion */
+function spawnEnemyAtRef(xTile, yTile){
+  // create a few enemies around tile
+  const cnt = 1 + Math.floor(Math.random()*2);
+  for(let i=0;i<cnt;i++){
+    const rx = Math.max(1, Math.min(MAP_COLS-2, xTile + (Math.random()*2-1)));
+    const ry = Math.max(1, Math.min(MAP_ROWS-2, yTile + (Math.random()*2-1)));
+    spawnEnemyAtCore(rx,ry);
+  }
+}
+function spawnEnemyAtCore(xTile, yTile){
+  const u = {
+    id: nextId++,
+    type:'enemy',
+    x: xTile + 0.5, y: yTile + 0.5,
+    tx: xTile + 0.5, ty: yTile + 0.5,
+    hp: 18 + Math.floor(Math.random()*12), maxHp:20,
+    atk:4 + Math.random()*3, atkCooldown:1.2, cooldownTimer:0,
+    speed: 1.6, state:'idle'
+  };
+  units.push(u);
+  log('적 스폰: id ' + u.id);
+}
+
+/* ========== start conditions ========== */
+// start with 2 workers
+spawnWorker(); spawnWorker();
+money = 100;
+updateUI();
+
+/* ========== loop start ========== */
+last = performance.now();
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>

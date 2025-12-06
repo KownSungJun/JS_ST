@@ -1,0 +1,272 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Flashcards (로컬) — 간단한 플래시카드 웹</title>
+  <style>
+    :root{
+      --bg:#0f172a; --card:#0b1220; --accent:#06b6d4; --muted:#94a3b8; --glass: rgba(255,255,255,0.04);
+      --radius:12px; --gap:12px;
+      color-scheme: dark;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; font-family:Inter, Noto Sans KR, system-ui, -apple-system, 'Segoe UI', Roboto;
+      background: linear-gradient(180deg, #020617 0%, #07112a 100%);
+      color:#e6eef8; display:flex; gap:20px; padding:28px; align-items:flex-start; justify-content:center;
+    }
+    .app{width:1100px; max-width:98%; display:grid; grid-template-columns:320px 1fr; gap:24px}
+
+    /* Sidebar */
+    .panel{background:var(--card); padding:16px; border-radius:var(--radius); box-shadow:0 6px 18px rgba(2,6,23,0.6);}
+    h1{font-size:20px;margin:0 0 12px}
+    .muted{color:var(--muted); font-size:13px}
+
+    .deck-list{display:flex; flex-direction:column; gap:8px; margin-top:12px}
+    .deck{display:flex; justify-content:space-between; align-items:center; padding:10px; background:var(--glass); border-radius:10px; cursor:pointer}
+    .deck.active{outline:2px solid rgba(6,182,212,0.12); box-shadow:0 6px 20px rgba(6,182,212,0.06)}
+    .deck .title{font-weight:600}
+    .deck small{color:var(--muted)}
+
+    .controls{display:flex; gap:8px; margin-top:12px}
+    button{background:transparent; border:1px solid rgba(255,255,255,0.06); padding:8px 10px; border-radius:8px; color:inherit; cursor:pointer}
+    button.primary{background:linear-gradient(90deg,var(--accent),#7c3aed); border:0}
+    input, textarea, select{width:100%; padding:8px; border-radius:8px; border:1px solid rgba(255,255,255,0.04); background:transparent; color:inherit}
+
+    /* Main */
+    .main{display:flex; flex-direction:column; gap:16px}
+    .card-area{display:flex; gap:18px}
+    .card-stage{flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:28px}
+
+    .flashcard{
+      width:560px; max-width:100%; height:320px; border-radius:16px; background:linear-gradient(180deg,#07122b,#04101a); display:flex; flex-direction:column; align-items:center; justify-content:center; position:relative; padding:28px; text-align:center; box-shadow:0 12px 40px rgba(2,6,23,0.7);
+      transition:transform .35s ease; cursor:pointer; user-select:none
+    }
+    .flashcard.flipped{transform:rotateY(180deg)}
+    .front, .back{backface-visibility:hidden}
+    .back{position:absolute; inset:0; transform:rotateY(180deg)}
+    .question{font-size:22px; font-weight:700}
+    .answer{font-size:18px}
+
+    .study-controls{display:flex; gap:8px; margin-top:16px}
+    .small{font-size:12px}
+
+    .editor{width:320px; min-height:240px}
+    .form-row{display:flex; gap:8px}
+
+    .list-cards{display:flex; flex-direction:column; gap:8px; max-height:320px; overflow:auto; padding-top:8px}
+    .card-row{display:flex; justify-content:space-between; gap:8px; padding:8px; background:var(--glass); border-radius:8px}
+
+    .footer{font-size:13px; color:var(--muted)}
+
+    /* responsive */
+    @media (max-width:900px){.app{grid-template-columns:1fr; padding-bottom:60px}.editor{order:2}.card-stage{order:1}}
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="panel">
+      <h1>플래시카드</h1>
+      <div class="muted">간단한 로컬 플래시카드 앱 — 저장: localStorage</div>
+
+      <div style="margin-top:12px">
+        <label class="muted">덱 이름</label>
+        <div style="display:flex; gap:8px; margin-top:8px">
+          <input id="new-deck-name" placeholder="예: 영어 단어" />
+          <button id="add-deck">추가</button>
+        </div>
+      </div>
+
+      <div class="deck-list" id="decks"></div>
+
+      <div class="controls">
+        <button id="import">가져오기 (JSON)</button>
+        <button id="export">내보내기</button>
+      </div>
+
+      <div style="margin-top:12px" class="footer">단축키: Space=뒤집기 · ←/→ 이전/다음 · K(아는 것) · U(모르는 것)</div>
+    </aside>
+
+    <main class="main">
+      <section class="card-area">
+        <div class="card-stage panel">
+          <div id="study-mode-toolbar" style="display:flex; gap:8px; align-items:center; justify-content:space-between">
+            <div>
+              <label class="muted">덱:</label>
+              <select id="deck-select" style="min-width:220px"></select>
+            </div>
+            <div style="display:flex; gap:8px">
+              <button id="shuffle">섞기</button>
+              <button id="start-study" class="primary">학습 시작</button>
+              <button id="reset-progress">진행 초기화</button>
+            </div>
+          </div>
+
+          <div style="margin-top:12px; text-align:center">
+            <div id="flashcard" class="flashcard">
+              <div class="front"><div id="q" class="question">덱을 만들고 카드를 추가해보세요.</div></div>
+              <div class="back"><div id="a" class="answer muted">정답은 여기에 표시됩니다.</div></div>
+            </div>
+
+            <div class="study-controls">
+              <button id="prev">이전</button>
+              <button id="show-answer">정답 보기</button>
+              <button id="next">다음</button>
+            </div>
+
+            <div style="margin-top:8px; display:flex; gap:8px">
+              <button id="mark-known">아는 것 (K)</button>
+              <button id="mark-unknown">모르는 것 (U)</button>
+            </div>
+
+            <div id="progress" style="margin-top:12px" class="muted">카드 0/0</div>
+          </div>
+        </div>
+
+        <aside class="panel editor">
+          <h2 style="margin:0 0 8px">카드 편집</h2>
+          <div style="display:flex; gap:8px; margin-bottom:8px">
+            <input id="q-input" placeholder="문제(앞면)" />
+            <input id="a-input" placeholder="답(뒷면)" />
+            <button id="add-card">추가</button>
+          </div>
+
+          <div class="list-cards" id="cards-list"></div>
+
+        </aside>
+      </section>
+
+      <div class="panel" style="padding:12px">
+        <div class="muted">설명</div>
+        <ul style="margin:8px 0 0 18px">
+          <li>카드는 브라우저의 localStorage에 저장됩니다. 다른 기기와 동기화하려면 내보내기/가져오기를 사용하세요.</li>
+          <li>학습 모드에서 '아는 것'을 누르면 카드가 뒤로 밀립니다. 간단한 반복 학습 로직이 포함되어 있습니다.</li>
+        </ul>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    // 간단한 플래시카드 앱 (vanilla JS) — 로컬 저장
+    const LS_KEY = 'flashcards_v1'
+    let state = {decks: {}, order:[], currentDeckId: null, session: {index:0, order:[], showing:false}}
+
+    // --- util ---
+    const uid = ()=>Math.random().toString(36).slice(2,9)
+    const save = ()=>localStorage.setItem(LS_KEY, JSON.stringify(state))
+    const load = ()=>{try{const v=localStorage.getItem(LS_KEY); if(v) state=JSON.parse(v)}catch(e){console.error(e)} }
+
+    // --- init DOM refs ---
+    const decksEl = document.getElementById('decks')
+    const deckSelect = document.getElementById('deck-select')
+    const addDeckBtn = document.getElementById('add-deck')
+    const newDeckName = document.getElementById('new-deck-name')
+    const cardsList = document.getElementById('cards-list')
+    const qInput = document.getElementById('q-input')
+    const aInput = document.getElementById('a-input')
+    const addCardBtn = document.getElementById('add-card')
+    const flashcardEl = document.getElementById('flashcard')
+    const qEl = document.getElementById('q')
+    const aEl = document.getElementById('a')
+    const prevBtn = document.getElementById('prev')
+    const nextBtn = document.getElementById('next')
+    const showAnswerBtn = document.getElementById('show-answer')
+    const shuffleBtn = document.getElementById('shuffle')
+    const startStudyBtn = document.getElementById('start-study')
+    const progressEl = document.getElementById('progress')
+    const markKnownBtn = document.getElementById('mark-known')
+    const markUnknownBtn = document.getElementById('mark-unknown')
+    const importBtn = document.getElementById('import')
+    const exportBtn = document.getElementById('export')
+    const resetProgressBtn = document.getElementById('reset-progress')
+
+    // --- data model helpers ---
+    function createDeck(name){ const id = uid(); state.decks[id]={id,name,cards:[]}; state.order.push(id); state.currentDeckId=id; save(); render(); }
+    function addCardToCurrent(q,a){ if(!state.currentDeckId) return alert('덱을 선택하거나 만드세요'); const d = state.decks[state.currentDeckId]; d.cards.push({id:uid(),q,a,score:0,seen:0}); save(); render(); }
+    function deleteCard(cardId){ const d=state.decks[state.currentDeckId]; d.cards = d.cards.filter(c=>c.id!==cardId); save(); render(); }
+    function editCard(cardId,newQ,newA){ const d=state.decks[state.currentDeckId]; const c = d.cards.find(x=>x.id===cardId); if(c){c.q=newQ; c.a=newA; save(); render();} }
+
+    // --- study session logic (simple spaced-ish behavior) ---
+    function startSession(){ const d=state.decks[state.currentDeckId]; if(!d || d.cards.length===0) return alert('카드를 추가하세요'); state.session.order = d.cards.map(c=>c.id); state.session.index=0; state.session.showing=false; renderCard(); updateProgress(); }
+    function shuffleSession(){ if(!state.currentDeckId) return; const d=state.decks[state.currentDeckId]; state.session.order = [...d.cards.map(c=>c.id)]; for(let i=state.session.order.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [state.session.order[i],state.session.order[j]]=[state.session.order[j],state.session.order[i]] } state.session.index=0; state.session.showing=false; renderCard(); save(); }
+    function resetProgress(){ if(!state.currentDeckId) return; const d=state.decks[state.currentDeckId]; d.cards.forEach(c=>{c.score=0;c.seen=0}); save(); render(); alert('진행이 초기화 되었습니다.'); }
+
+    function render(){ renderDecks(); renderDeckSelect(); renderCardsList(); renderCard(); }
+
+    function renderDecks(){ decksEl.innerHTML=''; state.order.forEach(id=>{ const d=state.decks[id]; const div=document.createElement('div'); div.className='deck'+(id===state.currentDeckId?' active':''); div.innerHTML=`<div><div class="title">${escapeHtml(d.name)}</div><small>${d.cards.length}장</small></div><div style="display:flex;gap:6px"><button data-id="${id}" class="select">열기</button><button data-id="${id}" class="del">삭제</button></div>`; decksEl.appendChild(div);
+      div.querySelector('.select').onclick=()=>{ state.currentDeckId=id; save(); render(); }
+      div.querySelector('.del').onclick=()=>{ if(confirm('덱을 삭제할까요?')){ delete state.decks[id]; state.order = state.order.filter(x=>x!==id); if(state.currentDeckId===id) state.currentDeckId = state.order[0] || null; save(); render(); } }
+    }) }
+
+    function renderDeckSelect(){ deckSelect.innerHTML=''; state.order.forEach(id=>{ const opt = document.createElement('option'); opt.value=id; opt.textContent = state.decks[id].name + ` (${state.decks[id].cards.length})`; deckSelect.appendChild(opt); }); deckSelect.value = state.currentDeckId || '' }
+
+    function renderCardsList(){ cardsList.innerHTML=''; if(!state.currentDeckId) return; const d=state.decks[state.currentDeckId]; d.cards.forEach(c=>{ const r=document.createElement('div'); r.className='card-row'; r.innerHTML=`<div style="flex:1"><strong>${escapeHtml(c.q)}</strong><div class="muted">${escapeHtml(c.a)}</div></div><div style="display:flex;gap:6px"><button data-id="${c.id}" class="edit">수정</button><button data-id="${c.id}" class="del">삭제</button></div>`; cardsList.appendChild(r);
+        r.querySelector('.del').onclick=()=>{ if(confirm('카드를 삭제합니까?')){ deleteCard(c.id) } }
+        r.querySelector('.edit').onclick=()=>{ const newQ=prompt('문제',c.q); if(newQ===null) return; const newA=prompt('답',c.a); if(newA===null) return; editCard(c.id,newQ,newA) }
+    }) }
+
+    function renderCard(){ const d = state.decks[state.currentDeckId]; if(!d){ qEl.textContent='덱을 만들고 카드를 추가해보세요.'; aEl.textContent=''; return }
+      const idx = state.session.index || 0; const order = state.session.order && state.session.order.length?state.session.order:d.cards.map(c=>c.id)
+      const cardId = order[idx]
+      const card = d.cards.find(c=>c.id===cardId)
+      if(!card){ qEl.textContent='카드가 없습니다.'; aEl.textContent=''; updateProgress(); return }
+      qEl.textContent = card.q
+      aEl.textContent = card.a
+      flashcardEl.classList.remove('flipped')
+    }
+
+    function showAnswer(){ flashcardEl.classList.add('flipped'); state.session.showing=true }
+    function next(){ const d=state.decks[state.currentDeckId]; if(!d) return; const order = state.session.order && state.session.order.length?state.session.order:d.cards.map(c=>c.id); if(state.session.index < order.length-1) state.session.index++; else state.session.index = 0; renderCard(); updateProgress(); }
+    function prev(){ const d=state.decks[state.currentDeckId]; if(!d) return; const order = state.session.order && state.session.order.length?state.session.order:d.cards.map(c=>c.id); if(state.session.index>0) state.session.index--; else state.session.index = order.length-1; renderCard(); updateProgress(); }
+
+    function markKnown(){ const d=state.decks[state.currentDeckId]; if(!d) return; const order = state.session.order && state.session.order.length?state.session.order:d.cards.map(c=>c.id); const cardId = order[state.session.index]; const c = d.cards.find(x=>x.id===cardId); if(c){ c.score = (c.score||0) + 1; c.seen = (c.seen||0)+1; // move to end for simple scheduling
+        order.splice(state.session.index,1); order.push(cardId); state.session.order = order; save(); next(); }
+    }
+    function markUnknown(){ const d=state.decks[state.currentDeckId]; if(!d) return; const order = state.session.order && state.session.order.length?state.session.order:d.cards.map(c=>c.id); const cardId = order[state.session.index]; const c = d.cards.find(x=>x.id===cardId); if(c){ c.score = Math.max(0,(c.score||0)-1); c.seen = (c.seen||0)+1; // push earlier
+        order.splice(state.session.index,1); order.splice(Math.max(0,state.session.index-1),0,cardId); state.session.order = order; save(); renderCard(); }
+    }
+
+    function updateProgress(){ const d = state.decks[state.currentDeckId]; if(!d){ progressEl.textContent='카드 0/0'; return } const total = d.cards.length; const idx = (state.session.index||0) + 1; progressEl.textContent = `카드 ${idx}/${total}` }
+
+    // --- import/export ---
+    function exportAll(){ const data = JSON.stringify(state, null, 2); const blob = new Blob([data], {type:'application/json'}); const url = URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='flashcards.json'; a.click(); URL.revokeObjectURL(url); }
+    function importJson(){ const inp = document.createElement('input'); inp.type='file'; inp.accept='application/json'; inp.onchange = e=>{ const f=e.target.files[0]; if(!f) return; const reader=new FileReader(); reader.onload=ev=>{ try{ const data = JSON.parse(ev.target.result); if(confirm('현재 저장 데이터를 덮어쓰시겠습니까?')){ state = data; save(); render(); } }catch(err){ alert('잘못된 파일입니다.') } }; reader.readAsText(f); }; inp.click(); }
+
+    // --- helpers ---
+    function escapeHtml(s){ if(!s) return ''; return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') }
+
+    // --- events ---
+    addDeckBtn.onclick = ()=>{ const name = newDeckName.value.trim() || '새 덱'; createDeck(name); newDeckName.value=''; }
+    addCardBtn.onclick = ()=>{ const q=qInput.value.trim(); const a=aInput.value.trim(); if(!q||!a) return alert('문제와 답을 모두 입력하세요'); addCardToCurrent(q,a); qInput.value=''; aInput.value=''; }
+    deckSelect.onchange = ()=>{ state.currentDeckId = deckSelect.value; save(); render(); }
+    shuffleBtn.onclick = ()=>{ shuffleSession(); }
+    startStudyBtn.onclick = ()=>{ startSession(); }
+    showAnswerBtn.onclick = ()=>{ showAnswer(); }
+    prevBtn.onclick = ()=>{ prev(); }
+    nextBtn.onclick = ()=>{ next(); }
+    markKnownBtn.onclick = ()=>{ markKnown(); updateProgress(); }
+    markUnknownBtn.onclick = ()=>{ markUnknown(); updateProgress(); }
+    importBtn.onclick = ()=>importJson()
+    exportBtn.onclick = ()=>exportAll()
+    resetProgressBtn.onclick = ()=>resetProgress()
+
+    flashcardEl.onclick = ()=>{ if(flashcardEl.classList.contains('flipped')) flashcardEl.classList.remove('flipped'); else flashcardEl.classList.add('flipped') }
+
+    // keyboard
+    document.addEventListener('keydown', e=>{
+      if(e.code==='Space'){ e.preventDefault(); flashcardEl.classList.toggle('flipped') }
+      if(e.key==='ArrowRight') next();
+      if(e.key==='ArrowLeft') prev();
+      if(e.key.toLowerCase()==='k') { markKnown(); }
+      if(e.key.toLowerCase()==='u') { markUnknown(); }
+    })
+
+    // --- startup ---
+    load(); if(!state.order.length){ // initial sample deck
+      const id = uid(); state.decks[id]={id,name:'샘플 덱',cards:[{id:uid(),q:'Hello',a:'안녕하세요'},{id:uid(),q:'Apple',a:'사과'},{id:uid(),q:'Cat',a:'고양이'}]}; state.order=[id]; state.currentDeckId = id; save(); }
+    render();
+  </script>
+</body>
+</html>

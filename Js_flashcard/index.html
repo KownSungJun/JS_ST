@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Flashcards (서버 저장)</title>
+  <style>
+    :root{
+      --bg:#0f172a; --card:#0b1220; --accent:#06b6d4; --muted:#94a3b8; --glass: rgba(255,255,255,0.04);
+      --radius:12px; --gap:12px;
+      color-scheme: dark;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; font-family:Inter, Noto Sans KR, system-ui, -apple-system, 'Segoe UI', Roboto;
+      background: linear-gradient(180deg, #020617 0%, #07112a 100%);
+      color:#e6eef8; display:flex; gap:20px; padding:28px; align-items:flex-start; justify-content:center;
+    }
+    .app{width:1100px; max-width:98%; display:grid; grid-template-columns:320px 1fr; gap:24px}
+
+    .panel{background:var(--card); padding:16px; border-radius:var(--radius); box-shadow:0 6px 18px rgba(2,6,23,0.6);}    
+    h1{font-size:20px;margin:0 0 12px}
+    .muted{color:var(--muted); font-size:13px}
+
+    .deck-list{display:flex; flex-direction:column; gap:8px; margin-top:12px}
+    .deck{display:flex; justify-content:space-between; align-items:center; padding:10px; background:var(--glass); border-radius:10px; cursor:pointer}
+    .deck.active{outline:2px solid rgba(6,182,212,0.12); box-shadow:0 6px 20px rgba(6,182,212,0.06)}
+    .deck .title{font-weight:600}
+    .deck small{color:var(--muted)}
+
+    .controls{display:flex; gap:8px; margin-top:12px}
+    button{background:transparent; border:1px solid rgba(255,255,255,0.06); padding:8px 10px; border-radius:8px; color:inherit; cursor:pointer}
+    button.primary{background:linear-gradient(90deg,var(--accent),#7c3aed); border:0}
+    input, textarea, select{width:100%; padding:8px; border-radius:8px; border:1px solid rgba(255,255,255,0.04); background:transparent; color:inherit}
+
+    .main{display:flex; flex-direction:column; gap:16px}
+    .card-area{display:flex; gap:18px}
+    .card-stage{flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:28px}
+
+    .flashcard{
+      width:560px; max-width:100%; height:320px; border-radius:16px; background:linear-gradient(180deg,#07122b,#04101a); display:flex; flex-direction:column; align-items:center; justify-content:center; position:relative; padding:28px; text-align:center; box-shadow:0 12px 40px rgba(2,6,23,0.7);
+      transition:transform .35s ease; cursor:pointer; user-select:none
+    }
+    .flashcard.flipped{transform:rotateY(180deg)}
+    .front, .back{backface-visibility:hidden}
+    .back{position:absolute; inset:0; transform:rotateY(180deg)}
+    .question{font-size:22px; font-weight:700}
+    .answer{font-size:18px}
+
+    .study-controls{display:flex; gap:8px; margin-top:16px}
+    .small{font-size:12px}
+
+    .editor{width:320px; min-height:240px}
+    .form-row{display:flex; gap:8px}
+
+    .list-cards{display:flex; flex-direction:column; gap:8px; max-height:320px; overflow:auto; padding-top:8px}
+    .card-row{display:flex; justify-content:space-between; gap:8px; padding:8px; background:var(--glass); border-radius:8px}
+
+    .footer{font-size:13px; color:var(--muted)}
+
+    @media (max-width:900px){.app{grid-template-columns:1fr; padding-bottom:60px}.editor{order:2}.card-stage{order:1}}
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="panel">
+      <h1>플래시카드</h1>
+      <div class="muted">서버 저장 지원 버전 (Node.js)</div>
+
+      <div style="margin-top:12px">
+        <label class="muted">덱 이름</label>
+        <div style="display:flex; gap:8px; margin-top:8px">
+          <input id="new-deck-name" placeholder="예: 영어 단어" />
+          <button id="add-deck">추가</button>
+        </div>
+      </div>
+
+      <div class="deck-list" id="decks"></div>
+
+      <div class="controls">
+        <button id="import">가져오기 (JSON)</button>
+        <button id="export">내보내기</button>
+      </div>
+
+      <div style="margin-top:12px" class="footer">Space=뒤집기 · ←/→ 이동 · K/U</div>
+    </aside>
+
+    <main class="main">
+      <section class="card-area">
+        <div class="card-stage panel">
+
+          <div id="study-mode-toolbar" style="display:flex; gap:8px; align-items:center; justify-content:space-between">
+            <div>
+              <label class="muted">덱:</label>
+              <select id="deck-select" style="min-width:220px"></select>
+            </div>
+            <div style="display:flex; gap:8px">
+              <button id="shuffle">섞기</button>
+              <button id="start-study" class="primary">학습 시작</button>
+              <button id="reset-progress">진행 초기화</button>
+            </div>
+          </div>
+
+          <div style="margin-top:12px; text-align:center">
+            <div id="flashcard" class="flashcard">
+              <div class="front"><div id="q" class="question">덱을 만들고 카드를 추가하세요.</div></div>
+              <div class="back"><div id="a" class="answer muted">정답은 여기에 표시됩니다.</div></div>
+            </div>
+
+            <div class="study-controls">
+              <button id="prev">이전</button>
+              <button id="show-answer">정답 보기</button>
+              <button id="next">다음</button>
+            </div>
+
+            <div style="margin-top:8px; display:flex; gap:8px">
+              <button id="mark-known">아는 것 (K)</button>
+              <button id="mark-unknown">모르는 것 (U)</button>
+            </div>
+
+            <div id="progress" style="margin-top:12px" class="muted">카드 0/0</div>
+          </div>
+        </div>
+
+        <aside class="panel editor">
+          <h2 style="margin:0 0 8px">카드 편집</h2>
+          <div style="display:flex; gap:8px; margin-bottom:8px">
+            <input id="q-input" placeholder="문제(앞면)" />
+            <input id="a-input" placeholder="답(뒷면)" />
+            <button id="add-card">추가</button>
+          </div>
+
+          <div class="list-cards" id="cards-list"></div>
+        </aside>
+      </section>
+
+    </main>
+  </div>
+
+  <script>
+    const LS_KEY = "flashcards_server_version";
+    let state = {
+      decks: {},
+      order: [],
+      currentDeckId: null,
+      session: { index: 0, order: [], showing: false }
+    };
+
+    async function loadFromServer() {
+      const res = await fetch("/load");
+      const data = await res.json();
+      if (data && Object.keys(data).length > 0) state = data;
+      render();
+    }
+    loadFromServer();
+
+async function saveToServer() {
+  await fetch("/save", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(state),
+  });
+}

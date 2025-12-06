@@ -1,0 +1,310 @@
+<!-- <!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        #game-container {
+            display: flex;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            gap: 10px;
+            justify-content: center;
+            align-items: center;
+            background-color: bisque;
+            width: 600px;
+            height: 700px;
+            transform: translate(-50%, -50%);
+        }
+        .fruit {
+            
+            width: 100px;
+            height: 100px;
+
+            background-color: rgb(102, 205, 162);
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <div class="fruit">fruit1</div>
+        <div class="fruit">fruit2</div>
+        <div class="fruit">fruit3</div>
+        <div class="fruit">fruit4</div>
+        <div class="fruit">fruit5</div>
+    </div>
+
+</body>
+</html> -->
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Fruit Ninja - HTML/CSS/JS</title>
+  <style>
+    :root{--bg:#111;--panel:#111a;--text:#eee}
+    html,body{height:100%;margin:0;font-family:Inter, system-ui, -apple-system, 'Segoe UI', Roboto;}
+    body{background:linear-gradient(180deg,#0d0f14 0%, #0b1220 100%);color:var(--text);display:flex;align-items:center;justify-content:center}
+    .wrap{width:900px;max-width:98vw;margin:20px auto}
+    canvas{display:block;width:100%;height:auto;border-radius:12px;box-shadow:0 8px 30px rgba(0,0,0,0.6);background:#08141a}
+    .ui{position:relative;margin-top:10px;display:flex;justify-content:space-between;align-items:center;color:var(--text)}
+    .panel{background:var(--panel);padding:8px 12px;border-radius:10px;backdrop-filter:blur(6px)}
+    .big{font-size:20px;font-weight:700}
+    .controls{display:flex;gap:10px;align-items:center}
+    button{background:#1f6feb;color:white;border:0;padding:8px 12px;border-radius:8px;cursor:pointer}
+    button.secondary{background:#2d2d2d}
+    .overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none}
+    .menu{pointer-events:auto;background:rgba(8,12,20,0.75);padding:24px;border-radius:14px;text-align:center}
+    .menu h1{margin:0 0 8px 0}
+    .trail{position:absolute;inset:0;pointer-events:none}
+    @media(max-width:480px){.big{font-size:16px}}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <canvas id="game" width="900" height="600"></canvas>
+    <div class="ui">
+      <div class="panel">
+        <div>Score: <span id="score">0</span></div>
+      </div>
+      <div class="panel controls">
+        <div class="big">Lives: <span id="lives">3</span></div>
+        <button id="startBtn">Start</button>
+        <button id="restartBtn" class="secondary">Restart</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // 간단한 Fruit Ninja 스타일 게임 (HTML/CSS/JS 단일 파일)
+    const canvas = document.getElementById('game');
+    const ctx = canvas.getContext('2d');
+    // 캔버스 픽셀 비율 설정
+    function fitCanvas(){
+      const ratio = window.devicePixelRatio || 1;
+      const w = canvas.clientWidth;
+      const h = canvas.clientHeight;
+      canvas.width = Math.floor(w*ratio);
+      canvas.height = Math.floor(h*ratio);
+      ctx.setTransform(ratio,0,0,ratio,0,0);
+    }
+    fitCanvas();
+    window.addEventListener('resize', fitCanvas);
+
+    // DOM
+    const scoreEl = document.getElementById('score');
+    const livesEl = document.getElementById('lives');
+    const startBtn = document.getElementById('startBtn');
+    const restartBtn = document.getElementById('restartBtn');
+
+    // 게임 상태
+    let score = 0;
+    let lives = 3;
+    let running = false;
+
+    // 물리 상수
+    const gravity = 0.28; // 중력
+
+    // 객체들
+    const fruits = [];
+    const particles = [];
+
+    // 입력 (마우스/터치) 트레일
+    let trail = [];
+    const TRAIL_LIFETIME = 300; // ms
+
+    // 유틸
+    function rand(a,b){ return Math.random()*(b-a)+a }
+
+    // 과일 생성
+    function spawnFruit(){
+      const w = canvas.clientWidth;
+      // 시작 x 랜덤, y 바닥
+      const x = rand(60, w-60);
+      const y = canvas.clientHeight + 40;
+      const vx = rand(-3,3);
+      const vy = rand(-12, -16);
+      const r = rand(26, 36);
+      const color = ['#ff4d4d','#ffb74d','#4dd0e1','#a5d6a7','#f48fb1'][Math.floor(rand(0,5))];
+      fruits.push({x,y,vx,vy,r,color,spawnTime:Date.now(),sliced:false});
+    }
+
+    // 파티클
+    function spawnParticles(x,y,color){
+      for(let i=0;i<14;i++){
+        particles.push({x,y,vx:rand(-6,6),vy:rand(-8,2),life:rand(600,1200),born:Date.now(),size:rand(2,5),color});
+      }
+    }
+
+    // 슬라이스 판정: 선분과 원 충돌
+    function segmentIntersectsCircle(x1,y1,x2,y2,cx,cy,r){
+      // projection method
+      const vx = x2-x1, vy = y2-y1;
+      const wx = cx-x1, wy = cy-y1;
+      const c1 = vx*wx + vy*wy;
+      const c2 = vx*vx + vy*vy;
+      const t = c2===0?0:Math.max(0, Math.min(1, c1/c2));
+      const px = x1 + vx*t, py = y1 + vy*t;
+      const dx = px-cx, dy = py-cy;
+      return dx*dx + dy*dy <= r*r;
+    }
+
+    // 게임 루프
+    let last = performance.now();
+    let spawnTimer = 0;
+    function loop(now){
+      const dt = now - last;
+      last = now;
+      update(dt);
+      render();
+      requestAnimationFrame(loop);
+    }
+
+    function update(dt){
+      if(!running) return;
+      // 스폰 빈도 조절 (점수에 따라)
+      spawnTimer += dt;
+      const spawnInterval = Math.max(500, 1200 - score*8);
+      if(spawnTimer > spawnInterval){ spawnTimer = 0; spawnFruit(); }
+
+      // 과일 물리
+      for(let i=fruits.length-1;i>=0;i--){
+        const f = fruits[i];
+        f.vy += gravity;
+        f.x += f.vx;
+        f.y += f.vy;
+        // 바닥 아래로 떨어지면 생명 깎기
+        if(f.y - f.r > canvas.clientHeight){
+          if(!f.sliced){ lives--; livesEl.textContent = lives; }
+          fruits.splice(i,1);
+          if(lives<=0){ endGame(); }
+        }
+      }
+
+      // 파티클 업데이트
+      const now = Date.now();
+      for(let i=particles.length-1;i>=0;i--){
+        const p = particles[i];
+        const age = now - p.born;
+        if(age > p.life){ particles.splice(i,1); continue; }
+        p.vy += 0.2;
+        p.x += p.vx;
+        p.y += p.vy;
+      }
+
+      // 트레일(입력 궤적) 업데이트: remove old points
+      const cutoff = Date.now() - TRAIL_LIFETIME;
+      while(trail.length && trail[0].t < cutoff) trail.shift();
+
+      // 슬라이스 판정: 트레일의 최근 세그먼트들과 과일 충돌 검사
+      if(trail.length > 1){
+        for(let i=fruits.length-1;i>=0;i--){
+          const f = fruits[i];
+          if(f.sliced) continue;
+          for(let j=0;j<trail.length-1;j++){
+            const a = trail[j], b = trail[j+1];
+            if(segmentIntersectsCircle(a.x,a.y,b.x,b.y,f.x,f.y,f.r)){
+              // 슬라이스 성공
+              f.sliced = true;
+              score += 10;
+              scoreEl.textContent = score;
+              spawnParticles(f.x,f.y,f.color);
+              fruits.splice(i,1);
+              break;
+            }
+          }
+        }
+      }
+    }
+
+    function render(){
+      const w = canvas.clientWidth, h = canvas.clientHeight;
+      ctx.clearRect(0,0,w,h);
+
+      // 배경 그라디언트
+      const g = ctx.createLinearGradient(0,0,0,h);
+      g.addColorStop(0,'#06121a'); g.addColorStop(1,'#08181e');
+      ctx.fillStyle = g; ctx.fillRect(0,0,w,h);
+
+      // 과일 그리기
+      for(const f of fruits){
+        // 그림자
+        ctx.beginPath(); ctx.ellipse(f.x+6,f.y+8,f.r*0.9, f.r*0.5, 0,0,Math.PI*2); ctx.fillStyle='rgba(0,0,0,0.15)'; ctx.fill();
+        // 몸통
+        ctx.beginPath(); ctx.arc(f.x,f.y,f.r,0,Math.PI*2); ctx.fillStyle=f.color; ctx.fill();
+        // 하이라이트
+        ctx.beginPath(); ctx.arc(f.x - f.r*0.28, f.y - f.r*0.28, f.r*0.26,0,Math.PI*2); ctx.fillStyle='rgba(255,255,255,0.25)'; ctx.fill();
+      }
+
+      // 파티클
+      for(const p of particles){
+        ctx.beginPath(); ctx.arc(p.x,p.y,p.size,0,Math.PI*2); ctx.fillStyle=p.color; ctx.fill();
+      }
+
+      // 트레일 그리기
+      if(trail.length>1){
+        ctx.lineJoin = ctx.lineCap = 'round';
+        for(let i=0;i<trail.length-1;i++){
+          const a = trail[i], b = trail[i+1];
+          const alpha = (i / trail.length);
+          ctx.strokeStyle = `rgba(255,255,255,${0.9*(1-alpha)})`;
+          ctx.lineWidth = 12*(1-alpha) + 2;
+          ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y); ctx.stroke();
+        }
+      }
+
+      // HUD (점수와 목숨은 DOM에서 관리)
+    }
+
+    // 입력 처리
+    let isDown = false;
+    function addTrailPoint(x,y){
+      trail.push({x,y,t:Date.now()});
+      // 트레일 길이 제한
+      if(trail.length>30) trail.shift();
+    }
+
+    // 마우스
+    canvas.addEventListener('mousedown',(e)=>{ isDown=true; addTrailPoint(e.offsetX,e.offsetY); });
+    canvas.addEventListener('mousemove',(e)=>{ if(isDown){ addTrailPoint(e.offsetX,e.offsetY); } });
+    window.addEventListener('mouseup',()=>{ isDown=false; trail = []; });
+
+    // 터치
+    canvas.addEventListener('touchstart',(e)=>{ e.preventDefault(); isDown=true; const t=e.touches[0]; const r=canvas.getBoundingClientRect(); addTrailPoint(t.clientX - r.left, t.clientY - r.top); });
+    canvas.addEventListener('touchmove',(e)=>{ e.preventDefault(); if(!isDown) return; const t=e.touches[0]; const r=canvas.getBoundingClientRect(); addTrailPoint(t.clientX - r.left, t.clientY - r.top); });
+    window.addEventListener('touchend',(e)=>{ isDown=false; trail=[]; });
+
+    // 게임 시작/종료
+    function startGame(){ score=0; lives=3; scoreEl.textContent=score; livesEl.textContent=lives; fruits.length=0; particles.length=0; running=true; last=performance.now(); spawnTimer=0; }
+    function endGame(){ running=false; // 간단한 오버레이
+      setTimeout(()=>{ alert(`Game Over\n점수: ${score}`); }, 50);
+    }
+
+    startBtn.addEventListener('click',()=>{ if(!running) startGame(); });
+    restartBtn.addEventListener('click',()=>{ startGame(); });
+
+    // 자동으로 루프 시작 (업데이트는 running 상태에서만 동작)
+    requestAnimationFrame(loop);
+
+    // 튜닝: 초기 과일 몇 개 미리 스폰
+    for(let i=0;i<3;i++) setTimeout(spawnFruit, i*400);
+
+    // 모바일에서 부드럽게 보이게 하기 위한 리사이즈 핸들
+    window.addEventListener('resize', ()=>{ fitCanvas(); });
+
+    // 개발자용: 키로 디버깅
+    window.addEventListener('keydown',(e)=>{
+      if(e.key==='p'){ running = !running; }
+      if(e.key===' '){ spawnFruit(); }
+    });
+  </script>
+</body>
+</html>
