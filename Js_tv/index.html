@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>Smart TV UI</title>
+  <style>
+    body {
+      margin: 0;
+      background: #000;
+      font-family: "Pretendard", sans-serif;
+      color: white;
+      overflow: hidden;
+    }
+
+    /* 배경 블러 */
+    .bg {
+      position: fixed;
+      inset: 0;
+      background: url('bg.jpg') center/cover no-repeat;
+      filter: blur(10px) brightness(0.4);
+      z-index: -1;
+    }
+
+    /* 상단 타이틀 바 */
+    .top-bar {
+      padding: 20px;
+      font-size: 32px;
+      font-weight: bold;
+    }
+
+    /* 카테고리 */
+    .menu-bar {
+      display: flex;
+      gap: 20px;
+      padding: 10px 20px;
+      font-size: 20px;
+      white-space: nowrap;
+    }
+
+    .menu-item {
+      padding: 5px 12px;
+      border-radius: 10px;
+      transition: 0.2s;
+    }
+
+    .menu-item.focused {
+      background: rgba(255,255,255,0.3);
+      transform: scale(1.1);
+    }
+
+    /* 콘텐츠 영역 */
+    .content-row {
+      margin-top: 40px;
+      padding-left: 20px;
+      white-space: nowrap;
+      overflow: hidden;
+    }
+
+    .item {
+      width: 160px;
+      height: 240px;
+      display: inline-block;
+      margin-right: 20px;
+      background-size: cover;
+      background-position: center;
+      border-radius: 10px;
+      transition: 0.25s ease;
+    }
+
+    .item.focused {
+      transform: scale(1.2);
+      box-shadow: 0 0 20px rgba(255,255,255,0.8);
+      border: 3px solid #fff;
+    }
+  </style>
+</head>
+<body>
+
+<div class="bg"></div>
+
+<!-- 상단 타이틀 -->
+<div class="top-bar">📺 My Smart TV</div>
+
+<!-- 메뉴 -->
+<div class="menu-bar">
+  <div class="menu-item focused">홈</div>
+  <div class="menu-item">영화</div>
+  <div class="menu-item">드라마</div>
+  <div class="menu-item">애니</div>
+  <div class="menu-item">검색</div>
+</div>
+
+<!-- 인기 콘텐츠 -->
+<div class="content-row" id="row1">
+  <div class="item" style="background-image:url('poster1.jpg')"></div>
+  <div class="item" style="background-image:url('poster2.jpg')"></div>
+  <div class="item" style="background-image:url('poster3.jpg')"></div>
+  <div class="item" style="background-image:url('poster4.jpg')"></div>
+  <div class="item" style="background-image:url('poster5.jpg')"></div>
+</div>
+
+<script>
+  // 메뉴와 콘텐츠 요소들
+  const menus = document.querySelectorAll(".menu-item");
+  const items = document.querySelectorAll(".item");
+
+  let menuIndex = 0;
+  let itemIndex = 0;
+  let onMenu = true; // 메뉴에 포커스인지 콘텐츠 포커스인지
+
+  function updateFocus() {
+    menus.forEach(m => m.classList.remove("focused"));
+    items.forEach(i => i.classList.remove("focused"));
+
+    if (onMenu) {
+      menus[menuIndex].classList.add("focused");
+    } else {
+      items[itemIndex].classList.add("focused");
+      items[itemIndex].scrollIntoView({ inline: "center", behavior: "smooth" });
+    }
+  }
+
+  // 리모컨 방향키 처리
+  document.addEventListener("keydown", (e) => {
+    if (onMenu) {
+      // 메뉴에 있을 때 좌우 이동
+      if (e.key === "ArrowRight") {
+        menuIndex = (menuIndex + 1) % menus.length;
+      }
+      if (e.key === "ArrowLeft") {
+        menuIndex = (menuIndex - 1 + menus.length) % menus.length;
+      }
+      if (e.key === "ArrowDown") {
+        onMenu = false;
+      }
+    } else {
+      // 콘텐츠에서 좌우 이동
+      if (e.key === "ArrowRight") {
+        itemIndex = (itemIndex + 1) % items.length;
+      }
+      if (e.key === "ArrowLeft") {
+        itemIndex = (itemIndex - 1 + items.length) % items.length;
+      }
+
+      // 위로 가면 메뉴로 복귀
+      if (e.key === "ArrowUp") {
+        onMenu = true;
+      }
+    }
+
+    updateFocus();
+  });
+
+  updateFocus();
+</script>
+
+</body>
+</html>
