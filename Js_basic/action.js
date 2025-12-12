@@ -5,7 +5,3 @@
  * 
  * 
  */
-
-document.getElementsByName
-
-document.addEventListener

@@ -1,0 +1,83 @@
+      * {
+        padding: 0;
+        margin: 0;
+        box-sizing: border-box;
+      }
+      body {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 100vw;
+        height: 100vh;
+      }
+      #game-container {
+        padding: 10px;
+        display: flex;
+        position: relative;
+        flex-direction: column;
+        justify-content: space-between;
+        border: 1px solid #000;
+        width: 1800px;
+        height: 900px;
+        background-color: rgb(104, 189, 34);
+      }
+      .player-container {
+        border: 1px solid #000;
+        width: 300px;
+        height: 200px;
+        background-color: aqua;
+      }
+      #up-player,
+      #down-player {
+        display: flex;
+        justify-content: space-between;
+      }
+      #deck {
+        position: absolute;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 150px;
+        height: 200px;
+        background-color: aquamarine;
+      }
+      .player-container:hover {
+        background-color: rgb(75, 138, 24);
+      }
+      #player-select-box {
+        position: absolute;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background-color: #444;
+        top: 50%;
+        left: 20%;
+        transform: translate(-50%, -50%);
+        width: 600px;
+        height: 300px;
+      }
+      #player-select-box button img {
+        width: 100px;
+        object-fit: cover;
+      }
+      #player-select-box button {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin-left: 10px;
+        text-align: center;
+        flex-direction: column;
+      }
+      #game-text-area {
+        position: absolute;
+        background-color: #aaa;
+        padding: 10px;
+        top: 50%;
+        left: 80%;
+        transform: translate(-50%, -50%);
+        width: 600px;
+        height: 300px;
+      }

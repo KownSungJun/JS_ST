@@ -233,3 +233,132 @@ async/await
 
 이런 비동기 작업들은 실제로 브라우저 엔진의 쓰레드에서 처리됨,
 하지만 JS 엔진 자체는 단 하나의 스레드만 사용.
+
+```js
+  <script>
+    const player1 = document.getElementById("player1");
+    const player2 = document.getElementById("player2");
+    const player3 = document.getElementById("player3");
+    const player4 = document.getElementById("player4");
+    const player5 = document.getElementById("player5");
+    const player6 = document.getElementById("player6");
+    const text_area = document.getElementById("game-text-area");
+    const game_start_button = document.getElementById("game-start-button");
+    const player_containers =
+      document.getElementsByClassName("player-container");
+    const deck = document.getElementById("deck");
+    const player_select_box = document.getElementById("player-select-box");
+
+    //0: not_ready 1: ready
+    let players_ready = [0, 0, 0, 0, 0, 0];
+    let player_count = 4;
+    let current_turn = 1;
+    let players_coin = [2, 2, 2, 2, 2, 2];
+    // 메인 선택 UI
+
+    //player 선택 메뉴 매핑
+    //코인1개 받기 : 1
+    //코인2개 받기 : 2
+    //공작 능력 : 3
+    //대사 능력 : 4
+    //사령관 능력 : 5
+    //암살자 능력 : 6
+    //쿠 일으키기 : 7
+    function renderMainSelect() {
+      player_select_box.innerHTML = `
+    <button data-btn="coin1">코인 1개 받기</button>
+    <button data-btn="coin2">코인 2개 받기</button>
+    <button data-btn="ability">캐릭터 능력 사용</button>
+    <button data-btn="coup">쿠 일으키기</button>
+  `;
+    }
+
+    // 능력 선택 UI
+    function renderAbilitySelect() {
+      player_select_box.innerHTML = `
+    <button data-btn="duke"><img src="./src/images/공작.PNG"/>공작</button>
+    <button data-btn="ambassador"><img src="./src/images/대사.PNG"/>대사</button>
+    <button data-btn="assassin"><img src="./src/images/암살자.PNG"/>암살자</button>
+    <button data-btn="captain"><img src="./src/images/사령관.PNG"/>사령관</button>
+    <button data-btn="back">뒤로 가기</button>
+  `;
+    }
+    game_start_button.addEventListener("click", () => {
+      game();
+      game_start_button.innerHTML = "";
+      deck.innerHTML = "<img src='./src/images/back.PNG'/>";
+      renderMainSelect();
+    });
+
+    // 📌 이벤트 위임: 부모 박스에 단 한 번만 이벤트 등록
+    player_select_box.addEventListener("click", (e) => {
+      const target = e.target;
+      if (target.tagName !== "BUTTON") return;
+
+      const type = target.dataset.btn;
+
+      if (type === "ability") {
+        renderAbilitySelect();
+      }
+
+      if (type === "back") {
+        renderMainSelect();
+      }
+
+      console.log("버튼 클릭:", type);
+    });
+
+    function waitForClick(element) {
+      return new Promise((resolve) => {
+        element.addEventListener("click", function handler() {
+          element.removeEventListener("click", handler);
+          resolve(); // 클릭되면 Promise 완료
+        });
+      });
+    }
+
+    //Game main 함수
+    async function game() {
+      text_area.innerHTML = `
+    지금 부터 보드게임 coup을 시작하겠습니다! <br>
+    플레이어 수 : ${player_count}명
+  `;
+
+      await new Promise((r) => setTimeout(r, 3000));
+
+      // 🔁 턴이 계속 무한히 반복됨
+      while (true) {
+        text_area.innerHTML = `
+      현재 플레이어 ${current_turn}턴 입니다. <br>
+      옵션을 선택해주시기 바랍니다.
+    `;
+
+        // 플레이어가 선택할 때까지 기다림
+        await waitForClick(player_select_box);
+
+        text_area.innerHTML = `플레이어 ${current_turn} 선택 완료!`;
+
+        // 1초 정도 지연 (안 해도 되지만 UX 좋음)
+        await new Promise((r) => setTimeout(r, 1000));
+
+        // 🔄 다음 플레이어로 이동
+        current_turn++;
+
+        // 🔁 마지막 플레이어까지 했으면 다시 1로
+        if (current_turn > player_count) {
+          current_turn = 1;
+        }
+
+        //플레이어가 1명이 되면 게임종료
+        if (player_count == 1) {
+          text_area.innerHTML = `
+        지금 부터 보드게임 coup을 시작하겠습니다! <br>
+        플레이어 수 : ${player_count}명`;
+        }
+      }
+    }
+  </script>
+
+
+
+```
