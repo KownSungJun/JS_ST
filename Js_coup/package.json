@@ -1,0 +1,21 @@
+{
+  "name": "js_coup",
+  "version": "1.0.0",
+  "description": "브라우저는 우리의 프론트 단 소스(html, css, js)를 실행시켜주고 view해준다",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
+    "express": "^5.2.1",
+    "http": "^0.0.1-security",
+    "mongoose": "^9.0.1",
+    "nodemon": "^3.1.11",
+    "socket.io": "^4.8.1"
+  }
+}

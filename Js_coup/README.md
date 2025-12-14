@@ -1,4 +1,5 @@
 # Web Coup Game
+https://princesskiji.tistory.com/155
 # 브라우저 동작 원리
 브라우저는 우리의 프론트 단 소스(html, css, js)를 실행시켜주고 view해준다
 
